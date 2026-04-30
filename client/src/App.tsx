@@ -65,7 +65,7 @@ const initialQuests: Quest[] = [
     id: "morning",
     title: "No-scroll first hour",
     description: "Keep socials locked until your day has momentum.",
-    progress: 46,
+    progress: 60,
     target: 60,
     reward: 18,
     claimed: false,
