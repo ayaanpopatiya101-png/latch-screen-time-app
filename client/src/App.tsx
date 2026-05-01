@@ -8,20 +8,26 @@ import {
   ArrowRight,
   BadgeCheck,
   Bell,
+  BookOpen,
   Brain,
   Check,
   ChevronLeft,
   ChevronRight,
+  Dumbbell,
   Flame,
   Gift,
+  Heart,
   Lock,
   Moon,
+  ShoppingBag,
   Shield,
   Smartphone,
   Sparkles,
   Sprout,
+  Star,
   Sun,
   Target,
+  TimerReset,
   Trophy,
   Users,
   Zap,
@@ -67,6 +73,22 @@ type OnboardingData = {
   topApps: string[];
   appleConnected: boolean;
   notificationsAllowed: boolean;
+};
+
+type OfflineAction = {
+  id: string;
+  title: string;
+  minutes: number;
+  rewardRange: [number, number];
+  icon: typeof Sprout;
+  swapFor: string;
+};
+
+type RewardItem = {
+  id: string;
+  title: string;
+  cost: number;
+  description: string;
 };
 
 const defaultProfile: OnboardingData = {
@@ -129,6 +151,19 @@ const weeklyBars = [46, 64, 58, 79, 72, 87, 91];
 const feelings = ["Tired", "Happy", "Stressed", "Bored", "Focused", "Regretful"];
 const appChoices = ["Instagram", "TikTok", "YouTube", "Snapchat", "Games", "Messages"];
 const hardTimes = ["Morning", "School break", "After homework", "Night", "When bored"];
+
+const offlineActions: OfflineAction[] = [
+  { id: "walk", title: "Take a 10-minute walk", minutes: 10, rewardRange: [8, 20], icon: Sprout, swapFor: "bored scroll" },
+  { id: "read", title: "Read 5 pages", minutes: 12, rewardRange: [10, 24], icon: BookOpen, swapFor: "bedtime scroll" },
+  { id: "workout", title: "Do a quick workout", minutes: 15, rewardRange: [12, 28], icon: Dumbbell, swapFor: "after-school scroll" },
+  { id: "friend", title: "Text a real friend", minutes: 5, rewardRange: [6, 18], icon: Heart, swapFor: "lonely scroll" },
+];
+
+const rewardShop: RewardItem[] = [
+  { id: "theme", title: "Lumi theme pack", cost: 35, description: "Make the app feel new without opening socials." },
+  { id: "unlock", title: "5 mindful minutes", cost: 45, description: "Earn a tiny, timed app unlock." },
+  { id: "badge", title: "Rare streak badge", cost: 60, description: "Show off a real-life win." },
+];
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -657,12 +692,23 @@ function Home() {
   const [mathAnswer, setMathAnswer] = useState("");
   const [quests, setQuests] = useState(initialQuests);
   const [toast, setToast] = useState("Lumi is ready. Pick a shielded app to test the anti-scroll flow.");
+  const [surpriseReward, setSurpriseReward] = useState<{ title: string; coins: number } | null>(null);
+  const [completedActions, setCompletedActions] = useState<string[]>([]);
+  const [shopMessage, setShopMessage] = useState("Spend coins on rewards that still keep you in control.");
 
   const recoveredHours = Math.max(0.5, profile.currentHours - profile.goalHours);
   const screenTimePercent = clamp((profile.currentHours / Math.max(1, profile.currentHours + recoveredHours)) * 100, 10, 92);
   const shieldProgress = shieldOpen ? ((selectedApp.delay - countdown) / selectedApp.delay) * 100 : 0;
   const focusProgress = focusActive ? ((15 - focusSeconds) / 15) * 100 : focusMinutes;
   const activeQuestCount = useMemo(() => quests.filter((quest) => !quest.claimed).length, [quests]);
+  const savedMinutes = Math.round(recoveredHours * 60) + completedActions.length * 8;
+  const lifeEquivalent = savedMinutes >= 90 ? "a full workout plus homework time" : savedMinutes >= 45 ? "a workout, walk, or focused study block" : "a walk, stretch, or quick reset";
+  const riskNudge =
+    profile.hardestTime === "Night"
+      ? "Smart nudge: At night, Lumi will ask you to park your phone before the feed starts."
+      : profile.hardestTime === "When bored"
+        ? "Smart nudge: When boredom hits, Lumi will offer swaps before opening the feed."
+        : `Smart nudge: Around ${profile.hardestTime.toLowerCase()}, Lumi will make the first open slower.`;
   const personalizedNudge =
     profile.feelings.includes("Tired") || profile.hardestTime === "Night"
       ? "Lumi will make night scrolling harder and bedtime rewards bigger."
@@ -720,9 +766,12 @@ function Home() {
 
   function skipApp() {
     setShieldStep("saved");
-    setCoins((current) => current + 6);
+    const possible = [6, 9, 14, 21];
+    const coinsWon = possible[(completedActions.length + selectedApp.opens) % possible.length];
+    setSurpriseReward({ title: "Mystery skip bonus", coins: coinsWon });
+    setCoins((current) => current + coinsWon);
     setFocusMinutes((minutes) => Math.min(100, minutes + 6));
-    setToast("Nice save. You skipped the impulse and earned 6 coins.");
+    setToast(`Surprise reward. You skipped the impulse and earned ${coinsWon} coins.`);
   }
 
   function buySession() {
@@ -751,6 +800,30 @@ function Home() {
     setToast("Focus sprint started. Demo mode finishes in 15 seconds.");
   }
 
+  function completeOfflineAction(action: OfflineAction) {
+    if (completedActions.includes(action.id)) {
+      setToast(`${action.title} is already counted. Pick a new real-life action.`);
+      return;
+    }
+    const rewardSpread = action.rewardRange[1] - action.rewardRange[0];
+    const coinsWon = action.rewardRange[0] + ((completedActions.length * 7 + action.minutes) % (rewardSpread + 1));
+    setCompletedActions((current) => [...current, action.id]);
+    setCoins((current) => current + coinsWon);
+    setFocusMinutes((minutes) => Math.min(100, minutes + action.minutes / 2));
+    setSurpriseReward({ title: action.title, coins: coinsWon });
+    setToast(`Real-life swap complete. Lumi gave you a mystery reward: ${coinsWon} coins.`);
+  }
+
+  function buyReward(item: RewardItem) {
+    if (coins < item.cost) {
+      setShopMessage(`You need ${item.cost - coins} more coins for ${item.title}. Try a swap or focus sprint.`);
+      return;
+    }
+    setCoins((current) => current - item.cost);
+    setShopMessage(`${item.title} unlocked. Rewards are earned, not endless.`);
+    setToast(`Reward shop win: ${item.title} unlocked.`);
+  }
+
   function claimQuest(id: string) {
     setQuests((current) =>
       current.map((quest) => {
@@ -774,7 +847,7 @@ function Home() {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <Logo />
           <nav className="hidden items-center gap-2 md:flex" aria-label="Primary navigation">
-            {["Shield", "Focus", "Quests", "Crew"].map((item) => (
+            {["Shield", "Swaps", "Shop", "Focus", "Quests", "Crew"].map((item) => (
               <button
                 key={item}
                 type="button"
@@ -832,8 +905,8 @@ function Home() {
             </div>
             <div className="rounded-2xl bg-secondary p-4" data-testid="card-loop-reward">
               <Gift className="h-5 w-5 text-primary" aria-hidden="true" />
-              <p className="mt-3 text-sm font-bold">Earn coins</p>
-              <p className="mt-1 text-sm text-muted-foreground">Skipping the feed becomes a win.</p>
+              <p className="mt-3 text-sm font-bold">Mystery rewards</p>
+              <p className="mt-1 text-sm text-muted-foreground">Skipping can unlock surprise coins.</p>
             </div>
             <div className="rounded-2xl bg-secondary p-4" data-testid="card-loop-social">
               <Users className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -862,6 +935,19 @@ function Home() {
             <div className="mt-4 rounded-2xl bg-secondary p-3 text-sm text-secondary-foreground" data-testid="text-toast-status">
               <Mascot compact mood="coach" message={toast} />
             </div>
+            {surpriseReward && (
+              <motion.div
+                initial={{ scale: 0.96, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="mt-3 rounded-2xl border border-primary/30 bg-primary p-3 text-primary-foreground"
+                data-testid="card-surprise-reward"
+              >
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4" aria-hidden="true" />
+                  <p className="text-sm font-black">{surpriseReward.title}: +{surpriseReward.coins} coins</p>
+                </div>
+              </motion.div>
+            )}
           </div>
         </aside>
       </section>
@@ -884,6 +970,94 @@ function Home() {
               </div>
             </div>
             <TinyBarChart currentHours={profile.currentHours} goalHours={profile.goalHours} />
+          </div>
+        </article>
+      </section>
+
+      <section id="swaps" className="mx-auto grid max-w-7xl gap-6 px-4 pb-6 sm:px-6 lg:grid-cols-[0.82fr_1.18fr] lg:px-8">
+        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-fomo">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">fomo flipped</p>
+              <h2 className="mt-2 font-display text-xl font-extrabold tracking-tight">You could get this time back</h2>
+            </div>
+            <TimerReset className="h-5 w-5 text-primary" aria-hidden="true" />
+          </div>
+          <div className="mt-6 rounded-[1.5rem] bg-background p-5">
+            <p className="font-display text-[2.4rem] font-black leading-none tabular-nums" data-testid="text-saved-minutes">{savedMinutes}m</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              That is enough for <strong>{lifeEquivalent}</strong>. Social apps create fear of missing out. Latch shows what you miss when you keep scrolling.
+            </p>
+          </div>
+          <div className="mt-4 rounded-[1.5rem] bg-secondary p-4" data-testid="text-smart-nudge">
+            <Mascot compact mood="coach" message={riskNudge} />
+          </div>
+        </article>
+
+        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-offline-feed">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">offline feed</p>
+              <h2 className="mt-2 font-display text-xl font-extrabold tracking-tight">Scroll this instead</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                This is the anti-infinite feed: small real-life actions with surprise rewards.
+              </p>
+            </div>
+            <Sparkles className="h-5 w-5 text-primary" aria-hidden="true" />
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {offlineActions.map((action) => {
+              const Icon = action.icon;
+              const done = completedActions.includes(action.id);
+              return (
+                <button
+                  key={action.id}
+                  type="button"
+                  onClick={() => completeOfflineAction(action)}
+                  className={`rounded-2xl p-4 text-left transition hover-elevate active-elevate-2 ${done ? "bg-primary text-primary-foreground" : "bg-background"}`}
+                  data-testid={`button-offline-action-${action.id}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <Icon className="h-5 w-5 text-current" aria-hidden="true" />
+                    <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-black text-secondary-foreground">
+                      {done ? "done" : `${action.rewardRange[0]}-${action.rewardRange[1]} coins`}
+                    </span>
+                  </div>
+                  <p className="mt-4 font-bold">{action.title}</p>
+                  <p className={`mt-1 text-sm ${done ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                    {action.minutes} min · replaces {action.swapFor}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </article>
+      </section>
+
+      <section id="shop" className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
+        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-reward-shop">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">reward shop</p>
+              <h2 className="mt-2 font-display text-xl font-extrabold tracking-tight">Make rewards earned</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{shopMessage}</p>
+            </div>
+            <div className="rounded-2xl bg-primary px-4 py-3 text-primary-foreground">
+              <p className="text-xs font-black uppercase tracking-[0.16em]">coins</p>
+              <p className="font-display text-xl font-black tabular-nums" data-testid="text-shop-coins">{coins}</p>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {rewardShop.map((item) => (
+              <div key={item.id} className="rounded-2xl bg-background p-4" data-testid={`card-reward-${item.id}`}>
+                <ShoppingBag className="h-5 w-5 text-primary" aria-hidden="true" />
+                <p className="mt-3 font-bold">{item.title}</p>
+                <p className="mt-1 min-h-12 text-sm leading-6 text-muted-foreground">{item.description}</p>
+                <Button type="button" className="mt-4 w-full" variant={coins >= item.cost ? "default" : "outline"} onClick={() => buyReward(item)} data-testid={`button-buy-reward-${item.id}`}>
+                  Buy for {item.cost}
+                </Button>
+              </div>
+            ))}
           </div>
         </article>
       </section>
