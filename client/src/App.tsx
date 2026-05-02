@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Switch, Route, Router } from "wouter";
+import { Router, useLocation } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
@@ -673,6 +673,68 @@ function ModePill({ mode }: { mode: Mode }) {
   );
 }
 
+const pageLinks = [
+  { label: "Home", path: "/" },
+  { label: "Bridge", path: "/bridge" },
+  { label: "Shield", path: "/shield" },
+  { label: "Swaps", path: "/swaps" },
+  { label: "Shop", path: "/shop" },
+  { label: "Focus", path: "/focus" },
+  { label: "Quests", path: "/quests" },
+  { label: "Crew", path: "/crew" },
+];
+
+function AppHeader({ theme, setTheme }: { theme: "light" | "dark"; setTheme: React.Dispatch<React.SetStateAction<"light" | "dark">> }) {
+  const [location, setLocation] = useLocation();
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/88 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        <button type="button" onClick={() => setLocation("/")} className="text-left" data-testid="button-home-logo">
+          <Logo />
+        </button>
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
+          {pageLinks.map((item) => (
+            <button
+              key={item.path}
+              type="button"
+              className={`rounded-xl px-3 py-2 text-sm font-semibold transition hover-elevate active-elevate-2 ${
+                location === item.path ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+              }`}
+              data-testid={`button-nav-${item.label.toLowerCase()}`}
+              onClick={() => setLocation(item.path)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => setLocation("/bridge")} data-testid="button-open-bridge">
+            Bridge
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))} data-testid="button-theme-toggle">
+            {theme === "dark" ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
+            {theme === "dark" ? "Light" : "Dark"}
+          </Button>
+        </div>
+      </div>
+      <nav className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 pb-3 sm:px-6 md:hidden" aria-label="Mobile navigation">
+        {pageLinks.map((item) => (
+          <button
+            key={item.path}
+            type="button"
+            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold ${location === item.path ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}
+            data-testid={`button-mobile-nav-${item.label.toLowerCase()}`}
+            onClick={() => setLocation(item.path)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+    </header>
+  );
+}
+
 function Home() {
   const [theme, setTheme] = useState<"light" | "dark">(() =>
     typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
@@ -695,6 +757,11 @@ function Home() {
   const [surpriseReward, setSurpriseReward] = useState<{ title: string; coins: number } | null>(null);
   const [completedActions, setCompletedActions] = useState<string[]>([]);
   const [shopMessage, setShopMessage] = useState("Spend coins on rewards that still keep you in control.");
+  const [bridgeCharge, setBridgeCharge] = useState(38);
+  const [bridgeMessage, setBridgeMessage] = useState("Build the bridge from phone mode to real-life mode.");
+  const [location, setLocation] = useLocation();
+  const rawPage = location === "/" ? "home" : location.replace("/", "");
+  const currentPage = ["home", "bridge", "shield", "swaps", "shop", "focus", "quests", "crew"].includes(rawPage) ? rawPage : "home";
 
   const recoveredHours = Math.max(0.5, profile.currentHours - profile.goalHours);
   const screenTimePercent = clamp((profile.currentHours / Math.max(1, profile.currentHours + recoveredHours)) * 100, 10, 92);
@@ -835,6 +902,19 @@ function Home() {
     );
   }
 
+  function boostBridge(kind: "breath" | "shake" | "mission") {
+    const boosts = { breath: 18, shake: 12, mission: 25 };
+    const copy = {
+      breath: "Breathing boost added. Your brain gets a pause before the feed.",
+      shake: "Pattern break added. Move your body before opening the app.",
+      mission: "Mini mission loaded. Real life gets the next tap.",
+    };
+    setBridgeCharge((current) => Math.min(100, current + boosts[kind]));
+    setCoins((current) => current + (kind === "mission" ? 12 : 6));
+    setBridgeMessage(copy[kind]);
+    setToast(`Bridge boost: ${copy[kind]}`);
+  }
+
   if (!onboarded) {
     return <Onboarding profile={profile} setProfile={setProfile} onFinish={() => setOnboarded(true)} theme={theme} setTheme={setTheme} />;
   }
@@ -843,30 +923,9 @@ function Home() {
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.16),transparent_34%),radial-gradient(circle_at_80%_20%,hsl(var(--chart-4)/0.18),transparent_24%)]" />
 
-      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/88 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-          <Logo />
-          <nav className="hidden items-center gap-2 md:flex" aria-label="Primary navigation">
-            {["Shield", "Swaps", "Shop", "Focus", "Quests", "Crew"].map((item) => (
-              <button
-                key={item}
-                type="button"
-                className="rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground hover-elevate active-elevate-2"
-                data-testid={`button-nav-${item.toLowerCase()}`}
-                onClick={() => document.getElementById(item.toLowerCase())?.scrollIntoView({ behavior: "smooth", block: "start" })}
-              >
-                {item}
-              </button>
-            ))}
-          </nav>
-          <Button type="button" variant="outline" size="sm" onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))} data-testid="button-theme-toggle">
-            {theme === "dark" ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
-            {theme === "dark" ? "Light" : "Dark"}
-          </Button>
-        </div>
-      </header>
+      <AppHeader theme={theme} setTheme={setTheme} />
 
-      <section className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-10">
+      {currentPage === "home" && <section className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-10">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="rounded-[2rem] bg-card p-5 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full bg-primary px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-primary-foreground" data-testid="text-product-tagline">
@@ -890,8 +949,8 @@ function Home() {
               Start focus
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Button>
-            <Button type="button" variant="outline" onClick={() => openShield(selectedApp)} data-testid="button-open-shield-hero">
-              Test shield
+            <Button type="button" variant="outline" onClick={() => setLocation("/bridge")} data-testid="button-open-bridge-hero">
+              Cross the bridge
             </Button>
             <Button type="button" variant="secondary" onClick={() => setOnboarded(false)} data-testid="button-edit-onboarding">
               Edit answers
@@ -950,9 +1009,9 @@ function Home() {
             )}
           </div>
         </aside>
-      </section>
+      </section>}
 
-      <section className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
+      {currentPage === "home" && <section className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
         <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-personal-plan">
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
@@ -972,9 +1031,74 @@ function Home() {
             <TinyBarChart currentHours={profile.currentHours} goalHours={profile.goalHours} />
           </div>
         </article>
-      </section>
+      </section>}
 
-      <section id="swaps" className="mx-auto grid max-w-7xl gap-6 px-4 pb-6 sm:px-6 lg:grid-cols-[0.82fr_1.18fr] lg:px-8">
+      {currentPage === "home" && <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+        <div className="grid gap-3 md:grid-cols-3" data-testid="section-page-launcher">
+          {[
+            ["Bridge", "/bridge", "Fun transition from phone mode to real-life mode."],
+            ["Shield", "/shield", "Slow down apps before they hook you."],
+            ["Swaps", "/swaps", "Pick real-life actions for mystery rewards."],
+            ["Shop", "/shop", "Spend coins on earned rewards."],
+            ["Focus", "/focus", "Run phone-free sprints."],
+            ["Crew", "/crew", "Compete on time saved with friends."],
+          ].map(([label, path, copy]) => (
+            <button key={path} type="button" onClick={() => setLocation(path)} className="rounded-[1.5rem] bg-card p-4 text-left shadow-sm transition hover-elevate active-elevate-2" data-testid={`button-launch-${label.toLowerCase()}`}>
+              <p className="font-display text-xl font-black">{label}</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{copy}</p>
+            </button>
+          ))}
+        </div>
+      </section>}
+
+      {currentPage === "bridge" && <section id="bridge" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-bridge">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">bridge mode</p>
+              <h1 className="mt-2 font-display text-[2.4rem] font-black leading-none tracking-tight">Cross out of scroll mode.</h1>
+              <p className="mt-4 text-sm leading-6 text-muted-foreground">The Bridge is a playful transition screen. Use it when you feel the urge to open a feed.</p>
+            </div>
+            <Mascot compact mood="celebrate" message={bridgeMessage} />
+          </div>
+          <div className="mt-7 rounded-[1.5rem] bg-background p-5">
+            <div className="flex items-center justify-between">
+              <p className="font-bold">Bridge charge</p>
+              <p className="font-mono font-black tabular-nums" data-testid="text-bridge-charge">{bridgeCharge}%</p>
+            </div>
+            <Progress className="mt-4 h-4" value={bridgeCharge} data-testid="progress-bridge-charge" />
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {Array.from({ length: 7 }).map((_, index) => (
+                <div key={index} className={`h-12 rounded-2xl border ${index < Math.ceil(bridgeCharge / 15) ? "border-primary bg-primary" : "border-border bg-secondary"}`} data-testid={`tile-bridge-${index}`} />
+              ))}
+            </div>
+          </div>
+        </article>
+        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-bridge-games">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">fun tools</p>
+          <h2 className="mt-2 font-display text-xl font-extrabold tracking-tight">Tap a bridge boost</h2>
+          <div className="mt-5 grid gap-3">
+            <button type="button" onClick={() => boostBridge("breath")} className="rounded-2xl bg-background p-4 text-left transition hover-elevate active-elevate-2" data-testid="button-bridge-breath">
+              <p className="font-bold">10-second breath gate</p>
+              <p className="mt-1 text-sm text-muted-foreground">Pause your body before the app loads. +6 coins.</p>
+            </button>
+            <button type="button" onClick={() => boostBridge("shake")} className="rounded-2xl bg-background p-4 text-left transition hover-elevate active-elevate-2" data-testid="button-bridge-shake">
+              <p className="font-bold">Pattern breaker</p>
+              <p className="mt-1 text-sm text-muted-foreground">Stand, stretch, or move for 20 seconds. +6 coins.</p>
+            </button>
+            <button type="button" onClick={() => boostBridge("mission")} className="rounded-2xl bg-background p-4 text-left transition hover-elevate active-elevate-2" data-testid="button-bridge-mission">
+              <p className="font-bold">Mini mission card</p>
+              <p className="mt-1 text-sm text-muted-foreground">Lumi gives a real-life challenge before the feed. +12 coins.</p>
+            </button>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <Button type="button" onClick={() => setLocation("/swaps")} data-testid="button-bridge-to-swaps">Go to swaps</Button>
+            <Button type="button" variant="outline" onClick={() => setLocation("/shield")} data-testid="button-bridge-to-shield">Test shield</Button>
+          </div>
+        </article>
+      </section>}
+
+      {currentPage === "swaps" && <section id="swaps" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.82fr_1.18fr] lg:px-8">
         <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-fomo">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -1032,9 +1156,9 @@ function Home() {
             })}
           </div>
         </article>
-      </section>
+      </section>}
 
-      <section id="shop" className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
+      {currentPage === "shop" && <section id="shop" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-reward-shop">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -1060,9 +1184,9 @@ function Home() {
             ))}
           </div>
         </article>
-      </section>
+      </section>}
 
-      <section id="shield" className="mx-auto grid max-w-7xl gap-6 px-4 pb-6 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+      {currentPage === "shield" && <section id="shield" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
         <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-shield">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -1166,9 +1290,9 @@ function Home() {
             )}
           </AnimatePresence>
         </article>
-      </section>
+      </section>}
 
-      <section id="focus" className="mx-auto grid max-w-7xl gap-6 px-4 pb-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
+      {currentPage === "focus" && <section id="focus" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
         <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-focus">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -1212,9 +1336,9 @@ function Home() {
             ))}
           </div>
         </article>
-      </section>
+      </section>}
 
-      <section id="quests" className="mx-auto grid max-w-7xl gap-6 px-4 pb-6 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
+      {currentPage === "quests" && <section id="quests" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
         <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-quests">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -1270,9 +1394,9 @@ function Home() {
             ))}
           </div>
         </article>
-      </section>
+      </section>}
 
-      <section id="crew" className="mx-auto grid max-w-7xl gap-6 px-4 pb-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
+      {currentPage === "crew" && <section id="crew" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
         <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-crew">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -1318,18 +1442,13 @@ function Home() {
             ))}
           </div>
         </article>
-      </section>
+      </section>}
     </main>
   );
 }
 
 function AppRouter() {
-  return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route component={NotFound} />
-    </Switch>
-  );
+  return <Home />;
 }
 
 function App() {
