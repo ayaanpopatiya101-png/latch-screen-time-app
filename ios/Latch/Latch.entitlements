@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Latch app entitlements.
+
+    com.apple.developer.family-controls is gated behind a special Apple
+    approval — your app will not pass App Review without it. Request via:
+    https://developer.apple.com/contact/request/family-controls-distribution
+
+    The App Group identifier must match the one referenced by the
+    DeviceActivityMonitor and ShieldConfiguration extension targets so
+    they can share UserDefaults / files with the main app.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>com.apple.developer.family-controls</key>
+    <true/>
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <string>group.com.latch.app</string>
+    </array>
+</dict>
+</plist>
