@@ -1,0 +1,1 @@
+This in an app that uses the same pyshcioglay tatics social media apps use to get you on your phone, and now using the same tatics to remove that addciton. This app is called Latch and our tagline line is "Hooked on Real Life."
