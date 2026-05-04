@@ -36,3 +36,71 @@ npm run dev
 ```
 
 Then open the URL printed by Vite.
+
+## Personalization engine
+
+Latch ships a backend personalization engine that turns onboarding
+answers and behavior into a per-user plan. The engine lives in
+[`server/personalization.ts`](./server/personalization.ts) and is wired
+into Express in [`server/routes.ts`](./server/routes.ts).
+
+It takes a typed `profile` (age, current/goal hours, feelings, hardest
+time, top apps) and `behavior` (offline actions, shield skips/unlocks,
+focus completions, coins, streak, minutes saved today) and returns:
+
+- **Risk score** (0–100) and tier — `low`, `medium`, `high`, `critical`.
+- **Persona** — one of `boredom_scroller`, `night_scroller`,
+  `social_validation_seeker`, `stress_scroller`, `balanced_user`, with
+  copy and a coach line for the UI.
+- **Adaptive shields** — per-app `delaySeconds`, `sessionLimitMinutes`,
+  `coinCost`, and recommended `mode` (`soft`, `focus`, `hard`).
+- **Recommendations** — best-next-action cards with simple copy.
+- **Reward tuning** — base coin multiplier, offline-action coin range,
+  focus reward, skip bonus range, and a streak shop discount.
+- **Nudge schedule** — windows and copy tied to the user's hardest time.
+- **Weekly forecast** — current vs goal hours and reclaimed hours per
+  week / year.
+
+### API
+
+All endpoints validate input with Zod.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/personalization/plan` | Full plan for a `{ profile, behavior }` payload. |
+| `POST` | `/api/personalization/event` | Behavior event in, updated plan + feedback string out. |
+| `GET`  | `/api/personalization/demo` | Deterministic demo plan for development. |
+
+Event types: `shield_skip`, `shield_unlock`, `focus_complete`,
+`offline_action`, `quest_claim`, `bridge_boost`.
+
+### Frontend integration
+
+The client fetches a plan after onboarding and after every relevant
+behavior event using the helpers in
+[`client/src/lib/personalization.ts`](./client/src/lib/personalization.ts).
+The Home dashboard renders persona, risk tier, weekly forecast, and the
+top recommendation. The Shield panel uses the adaptive delay, session
+limit, and coin cost. Smart Lumi nudges, swap ordering, focus reward,
+skip bonus, and shop discount all read from the plan when available.
+
+If the API is unreachable, `fallbackPlan()` keeps the UI working with
+sensible defaults so the prototype never breaks.
+
+### Tests
+
+A deterministic test script validates representative algorithm outputs:
+
+```bash
+npx tsx script/personalization-test.ts
+```
+
+It covers boredom / night / stress / balanced personas, risk scoring
+across hours and behavior, shield adaptation, reward scaling, and the
+event endpoint feedback.
+
+### What it does *not* claim
+
+The engine does not diagnose, treat, or replace any clinical care. It
+is a behavior-design layer that tunes friction, rewards, and copy to
+the user's stated goals.

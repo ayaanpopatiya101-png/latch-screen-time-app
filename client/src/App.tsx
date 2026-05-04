@@ -38,6 +38,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { queryClient } from "./lib/queryClient";
 import NotFound from "@/pages/not-found";
+import {
+  fetchPlan,
+  fallbackPlan,
+  postEvent,
+  profileToPayload,
+  type PersonalizationPlan,
+  type EventType,
+} from "@/lib/personalization";
 
 type Mode = "soft" | "focus" | "hard";
 type OnboardingStep = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -759,9 +767,34 @@ function Home() {
   const [shopMessage, setShopMessage] = useState("Spend coins on rewards that still keep you in control.");
   const [bridgeCharge, setBridgeCharge] = useState(38);
   const [bridgeMessage, setBridgeMessage] = useState("Build the bridge from phone mode to real-life mode.");
+  const [plan, setPlan] = useState<PersonalizationPlan | null>(null);
+  const [planError, setPlanError] = useState<string | null>(null);
   const [location, setLocation] = useLocation();
   const rawPage = location === "/" ? "home" : location.replace("/", "");
   const currentPage = ["home", "bridge", "shield", "swaps", "shop", "focus", "quests", "crew"].includes(rawPage) ? rawPage : "home";
+
+  const adaptiveAppRules = useMemo<AppRule[]>(() => {
+    if (!plan) return appRules;
+    return appRules.map((rule) => {
+      const shield = plan.shields.find(
+        (s) => s.appName.toLowerCase() === rule.name.toLowerCase(),
+      );
+      if (!shield) return rule;
+      return {
+        ...rule,
+        delay: shield.delaySeconds,
+        limit: shield.sessionLimitMinutes,
+        mode: shield.mode,
+      };
+    });
+  }, [plan]);
+
+  useEffect(() => {
+    setSelectedApp((current) => {
+      const updated = adaptiveAppRules.find((rule) => rule.id === current.id);
+      return updated ?? current;
+    });
+  }, [adaptiveAppRules]);
 
   const recoveredHours = Math.max(0.5, profile.currentHours - profile.goalHours);
   const screenTimePercent = clamp((profile.currentHours / Math.max(1, profile.currentHours + recoveredHours)) * 100, 10, 92);
@@ -770,22 +803,63 @@ function Home() {
   const activeQuestCount = useMemo(() => quests.filter((quest) => !quest.claimed).length, [quests]);
   const savedMinutes = Math.round(recoveredHours * 60) + completedActions.length * 8;
   const lifeEquivalent = savedMinutes >= 90 ? "a full workout plus homework time" : savedMinutes >= 45 ? "a workout, walk, or focused study block" : "a walk, stretch, or quick reset";
-  const riskNudge =
-    profile.hardestTime === "Night"
+  const riskNudge = plan?.nudge.windows[0]?.message
+    ?? (profile.hardestTime === "Night"
       ? "Smart nudge: At night, Lumi will ask you to park your phone before the feed starts."
       : profile.hardestTime === "When bored"
         ? "Smart nudge: When boredom hits, Lumi will offer swaps before opening the feed."
-        : `Smart nudge: Around ${profile.hardestTime.toLowerCase()}, Lumi will make the first open slower.`;
-  const personalizedNudge =
-    profile.feelings.includes("Tired") || profile.hardestTime === "Night"
+        : `Smart nudge: Around ${profile.hardestTime.toLowerCase()}, Lumi will make the first open slower.`);
+  const personalizedNudge = plan?.coachLine
+    ?? (profile.feelings.includes("Tired") || profile.hardestTime === "Night"
       ? "Lumi will make night scrolling harder and bedtime rewards bigger."
       : profile.feelings.includes("Bored")
         ? "Lumi will suggest quick swaps when boredom scrolling starts."
-        : "Lumi will keep your shields light and reward your focus wins.";
+        : "Lumi will keep your shields light and reward your focus wins.");
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
+
+  const behaviorPayload = useMemo(
+    () => ({
+      completedOfflineActions: completedActions.length,
+      shieldSkips: 0,
+      shieldUnlocks: 0,
+      focusCompletions: 0,
+      coins,
+      streak,
+      minutesSavedToday: 0,
+    }),
+    [completedActions.length, coins, streak],
+  );
+
+  async function refreshPlan() {
+    try {
+      const next = await fetchPlan(profileToPayload(profile), behaviorPayload);
+      setPlan(next);
+      setPlanError(null);
+    } catch (err) {
+      setPlan(fallbackPlan(profileToPayload(profile)));
+      setPlanError(err instanceof Error ? err.message : "Plan offline.");
+    }
+  }
+
+  async function recordEvent(type: EventType, extra: { appName?: string; minutes?: number } = {}) {
+    try {
+      const result = await postEvent(type, profileToPayload(profile), behaviorPayload, extra);
+      setPlan(result.plan);
+      setPlanError(null);
+      if (result.feedback) setToast(result.feedback);
+    } catch (err) {
+      setPlanError(err instanceof Error ? err.message : "Plan offline.");
+    }
+  }
+
+  useEffect(() => {
+    if (!onboarded) return;
+    void refreshPlan();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onboarded, profile.name, profile.currentHours, profile.goalHours, profile.hardestTime, profile.topApps.join(","), profile.feelings.join(",")]);
 
   useEffect(() => {
     if (!shieldOpen || shieldStep !== "pause") return;
@@ -811,15 +885,18 @@ function Home() {
           window.clearInterval(id);
           setFocusActive(false);
           setFocusMinutes((minutes) => Math.min(100, minutes + 18));
-          setCoins((currentCoins) => currentCoins + 22);
+          const reward = plan?.rewardTuning.focusReward ?? 22;
+          setCoins((currentCoins) => currentCoins + reward);
           setStreak((currentStreak) => currentStreak + 1);
-          setToast("Great job. You earned 22 coins and kept the feed locked.");
+          setToast(`Great job. You earned ${reward} coins and kept the feed locked.`);
+          void recordEvent("focus_complete", { minutes: 25 });
           return 15;
         }
         return current - 1;
       });
     }, 1000);
     return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusActive]);
 
   function openShield(app: AppRule) {
@@ -833,22 +910,28 @@ function Home() {
 
   function skipApp() {
     setShieldStep("saved");
-    const possible = [6, 9, 14, 21];
-    const coinsWon = possible[(completedActions.length + selectedApp.opens) % possible.length];
+    const range = plan?.rewardTuning.skipBonusRange ?? [6, 21];
+    const spread = Math.max(1, range[1] - range[0]);
+    const coinsWon = range[0] + ((completedActions.length + selectedApp.opens) % spread);
     setSurpriseReward({ title: "Mystery skip bonus", coins: coinsWon });
     setCoins((current) => current + coinsWon);
     setFocusMinutes((minutes) => Math.min(100, minutes + 6));
     setToast(`Surprise reward. You skipped the impulse and earned ${coinsWon} coins.`);
+    void recordEvent("shield_skip", { appName: selectedApp.name });
   }
 
   function buySession() {
-    if (coins < 10) {
-      setToast("Not enough coins yet. Finish a focus round first.");
+    const cost = plan?.shields.find(
+      (s) => s.appName.toLowerCase() === selectedApp.name.toLowerCase(),
+    )?.coinCost ?? 10;
+    if (coins < cost) {
+      setToast(`Not enough coins yet. ${selectedApp.name} costs ${cost}. Finish a focus round first.`);
       return;
     }
-    setCoins((current) => current - 10);
+    setCoins((current) => current - cost);
     setShieldStep("math");
-    setToast("Coins spent. One tiny brain check before opening.");
+    setToast(`Coins spent (${cost}). One tiny brain check before opening.`);
+    void recordEvent("shield_unlock", { appName: selectedApp.name });
   }
 
   function submitMath() {
@@ -872,23 +955,35 @@ function Home() {
       setToast(`${action.title} is already counted. Pick a new real-life action.`);
       return;
     }
-    const rewardSpread = action.rewardRange[1] - action.rewardRange[0];
-    const coinsWon = action.rewardRange[0] + ((completedActions.length * 7 + action.minutes) % (rewardSpread + 1));
+    const range = plan?.rewardTuning.offlineActionRange ?? action.rewardRange;
+    const rewardSpread = Math.max(1, range[1] - range[0]);
+    const coinsWon = range[0] + ((completedActions.length * 7 + action.minutes) % (rewardSpread + 1));
     setCompletedActions((current) => [...current, action.id]);
     setCoins((current) => current + coinsWon);
     setFocusMinutes((minutes) => Math.min(100, minutes + action.minutes / 2));
     setSurpriseReward({ title: action.title, coins: coinsWon });
     setToast(`Real-life swap complete. Lumi gave you a mystery reward: ${coinsWon} coins.`);
+    void recordEvent("offline_action", { minutes: action.minutes });
   }
 
   function buyReward(item: RewardItem) {
-    if (coins < item.cost) {
-      setShopMessage(`You need ${item.cost - coins} more coins for ${item.title}. Try a swap or focus sprint.`);
+    const discount = plan?.rewardTuning.shopDiscountPercent ?? 0;
+    const finalCost = Math.max(1, Math.round(item.cost * (1 - discount / 100)));
+    if (coins < finalCost) {
+      setShopMessage(`You need ${finalCost - coins} more coins for ${item.title}. Try a swap or focus sprint.`);
       return;
     }
-    setCoins((current) => current - item.cost);
-    setShopMessage(`${item.title} unlocked. Rewards are earned, not endless.`);
+    setCoins((current) => current - finalCost);
+    setShopMessage(
+      discount > 0
+        ? `${item.title} unlocked at a ${discount}% streak discount.`
+        : `${item.title} unlocked. Rewards are earned, not endless.`,
+    );
     setToast(`Reward shop win: ${item.title} unlocked.`);
+  }
+
+  function claimQuestEvent() {
+    void recordEvent("quest_claim");
   }
 
   function claimQuest(id: string) {
@@ -897,6 +992,7 @@ function Home() {
         if (quest.id !== id || quest.progress < quest.target || quest.claimed) return quest;
         setCoins((coinTotal) => coinTotal + quest.reward);
         setToast(`Quest claimed. Lumi added ${quest.reward} coins.`);
+        claimQuestEvent();
         return { ...quest, claimed: true };
       }),
     );
@@ -910,9 +1006,12 @@ function Home() {
       mission: "Mini mission loaded. Real life gets the next tap.",
     };
     setBridgeCharge((current) => Math.min(100, current + boosts[kind]));
-    setCoins((current) => current + (kind === "mission" ? 12 : 6));
+    const multiplier = plan?.rewardTuning.baseCoinMultiplier ?? 1;
+    const baseCoins = kind === "mission" ? 12 : 6;
+    setCoins((current) => current + Math.round(baseCoins * multiplier));
     setBridgeMessage(copy[kind]);
     setToast(`Bridge boost: ${copy[kind]}`);
+    void recordEvent("bridge_boost");
   }
 
   if (!onboarded) {
@@ -1016,10 +1115,34 @@ function Home() {
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">your setup</p>
-              <h2 className="mt-2 font-display text-xl font-extrabold tracking-tight">Personal plan from your login</h2>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                You said scrolling is hardest around <strong>{profile.hardestTime}</strong>. Your top app shield starts with <strong>{profile.topApps[0] || "Instagram"}</strong>.
+              <h2 className="mt-2 font-display text-xl font-extrabold tracking-tight">
+                {plan ? plan.personaLabel : "Personal plan from your login"}
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground" data-testid="text-persona-copy">
+                {plan ? plan.personaCopy : (
+                  <>
+                    You said scrolling is hardest around <strong>{profile.hardestTime}</strong>. Your top app shield starts with <strong>{profile.topApps[0] || "Instagram"}</strong>.
+                  </>
+                )}
               </p>
+              {plan && (
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-background p-3" data-testid="card-risk-tier">
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">risk tier</p>
+                    <p className="mt-1 font-display text-lg font-black capitalize">{plan.riskTier}</p>
+                    <p className="text-xs text-muted-foreground">score {plan.riskScore}/100</p>
+                  </div>
+                  <div className="rounded-2xl bg-background p-3" data-testid="card-weekly-forecast">
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">weekly forecast</p>
+                    <p className="mt-1 font-display text-lg font-black tabular-nums">
+                      {plan.weeklyForecast.reclaimedHoursPerWeek}h back / week
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {plan.weeklyForecast.reclaimedHoursPerYear}h reclaimed / year
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="mt-5 flex flex-wrap gap-2">
                 {profile.feelings.map((feeling) => (
                   <span key={feeling} className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-secondary-foreground">
@@ -1027,9 +1150,30 @@ function Home() {
                   </span>
                 ))}
               </div>
+              {plan && plan.recommendations[0] && (
+                <div className="mt-5 rounded-2xl bg-secondary p-4 text-sm leading-6 text-secondary-foreground" data-testid="card-recommendation-top">
+                  <p className="font-bold">{plan.recommendations[0].title}</p>
+                  <p className="mt-1 text-sm">{plan.recommendations[0].body}</p>
+                </div>
+              )}
+              {planError && (
+                <p className="mt-3 text-xs text-muted-foreground" data-testid="text-plan-fallback">
+                  Latch is using offline defaults. {planError}
+                </p>
+              )}
             </div>
             <TinyBarChart currentHours={profile.currentHours} goalHours={profile.goalHours} />
           </div>
+          {plan && plan.recommendations.length > 1 && (
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-testid="grid-recommendations">
+              {plan.recommendations.slice(1).map((rec) => (
+                <div key={rec.id} className="rounded-2xl bg-background p-4">
+                  <p className="text-sm font-bold">{rec.title}</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{rec.body}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </article>
       </section>}
 
@@ -1130,30 +1274,57 @@ function Home() {
             <Sparkles className="h-5 w-5 text-primary" aria-hidden="true" />
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {offlineActions.map((action) => {
-              const Icon = action.icon;
-              const done = completedActions.includes(action.id);
-              return (
-                <button
-                  key={action.id}
-                  type="button"
-                  onClick={() => completeOfflineAction(action)}
-                  className={`rounded-2xl p-4 text-left transition hover-elevate active-elevate-2 ${done ? "bg-primary text-primary-foreground" : "bg-background"}`}
-                  data-testid={`button-offline-action-${action.id}`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <Icon className="h-5 w-5 text-current" aria-hidden="true" />
-                    <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-black text-secondary-foreground">
-                      {done ? "done" : `${action.rewardRange[0]}-${action.rewardRange[1]} coins`}
-                    </span>
-                  </div>
-                  <p className="mt-4 font-bold">{action.title}</p>
-                  <p className={`mt-1 text-sm ${done ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                    {action.minutes} min · replaces {action.swapFor}
-                  </p>
-                </button>
-              );
-            })}
+            {(() => {
+              const personaPriorityById: Record<string, string[]> = {
+                night_scroller: ["read", "friend"],
+                boredom_scroller: ["walk", "workout"],
+                stress_scroller: ["walk", "friend"],
+                social_validation_seeker: ["friend", "read"],
+                balanced_user: [],
+              };
+              const priority = plan ? personaPriorityById[plan.persona] ?? [] : [];
+              const sorted = [...offlineActions].sort((a, b) => {
+                const aIdx = priority.indexOf(a.id);
+                const bIdx = priority.indexOf(b.id);
+                const aRank = aIdx === -1 ? 99 : aIdx;
+                const bRank = bIdx === -1 ? 99 : bIdx;
+                return aRank - bRank;
+              });
+              const range = plan?.rewardTuning.offlineActionRange;
+              return sorted.map((action) => {
+                const Icon = action.icon;
+                const done = completedActions.includes(action.id);
+                const lowHigh = range ? `${range[0]}-${range[1]}` : `${action.rewardRange[0]}-${action.rewardRange[1]}`;
+                const recommended = priority.includes(action.id);
+                return (
+                  <button
+                    key={action.id}
+                    type="button"
+                    onClick={() => completeOfflineAction(action)}
+                    className={`rounded-2xl p-4 text-left transition hover-elevate active-elevate-2 ${done ? "bg-primary text-primary-foreground" : "bg-background"}`}
+                    data-testid={`button-offline-action-${action.id}`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <Icon className="h-5 w-5 text-current" aria-hidden="true" />
+                      <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-black text-secondary-foreground">
+                        {done ? "done" : `${lowHigh} coins`}
+                      </span>
+                    </div>
+                    <p className="mt-4 font-bold">
+                      {action.title}
+                      {recommended && !done && (
+                        <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] text-secondary-foreground">
+                          for you
+                        </span>
+                      )}
+                    </p>
+                    <p className={`mt-1 text-sm ${done ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                      {action.minutes} min · replaces {action.swapFor}
+                    </p>
+                  </button>
+                );
+              });
+            })()}
           </div>
         </article>
       </section>}
@@ -1196,7 +1367,7 @@ function Home() {
             <Lock className="h-5 w-5 text-primary" aria-hidden="true" />
           </div>
           <div className="mt-5 space-y-3">
-            {appRules.map((app) => (
+            {adaptiveAppRules.map((app) => (
               <button
                 type="button"
                 key={app.id}
@@ -1226,8 +1397,13 @@ function Home() {
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">selected shield</p>
               <h2 className="mt-2 font-display text-xl font-extrabold tracking-tight">{selectedApp.name}</h2>
               <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-                {selectedApp.delay} second pause, {selectedApp.limit} minute limit, and a coin gate before opening.
+                {selectedApp.delay} second pause, {selectedApp.limit} minute limit, and a {plan?.shields.find((s) => s.appName.toLowerCase() === selectedApp.name.toLowerCase())?.coinCost ?? 10} coin gate before opening.
               </p>
+              {plan && (
+                <p className="mt-2 max-w-xl text-xs text-muted-foreground" data-testid="text-shield-reason">
+                  {plan.shields.find((s) => s.appName.toLowerCase() === selectedApp.name.toLowerCase())?.reason ?? plan.coachLine}
+                </p>
+              )}
             </div>
             <Button type="button" onClick={() => openShield(selectedApp)} data-testid="button-open-selected-shield">
               Open shield
