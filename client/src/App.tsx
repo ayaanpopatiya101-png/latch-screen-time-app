@@ -46,6 +46,8 @@ import {
   type PersonalizationPlan,
   type EventType,
 } from "@/lib/personalization";
+import { AccountGate } from "@/components/AccountGate";
+import { logout as apiLogout, patchProfile, type SafeAccount } from "@/lib/auth";
 
 type Mode = "soft" | "focus" | "hard";
 type OnboardingStep = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -692,7 +694,17 @@ const pageLinks = [
   { label: "Crew", path: "/crew" },
 ];
 
-function AppHeader({ theme, setTheme }: { theme: "light" | "dark"; setTheme: React.Dispatch<React.SetStateAction<"light" | "dark">> }) {
+function AppHeader({
+  theme,
+  setTheme,
+  account,
+  onLogout,
+}: {
+  theme: "light" | "dark";
+  setTheme: React.Dispatch<React.SetStateAction<"light" | "dark">>;
+  account: SafeAccount | null;
+  onLogout: () => void;
+}) {
   const [location, setLocation] = useLocation();
 
   return (
@@ -717,6 +729,11 @@ function AppHeader({ theme, setTheme }: { theme: "light" | "dark"; setTheme: Rea
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          {account && (
+            <span className="hidden text-xs font-bold text-muted-foreground sm:inline" data-testid="text-account-username">
+              {account.username}
+            </span>
+          )}
           <Button type="button" variant="outline" size="sm" onClick={() => setLocation("/bridge")} data-testid="button-open-bridge">
             Bridge
           </Button>
@@ -724,6 +741,11 @@ function AppHeader({ theme, setTheme }: { theme: "light" | "dark"; setTheme: Rea
             {theme === "dark" ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
             {theme === "dark" ? "Light" : "Dark"}
           </Button>
+          {account && (
+            <Button type="button" variant="secondary" size="sm" onClick={onLogout} data-testid="button-logout">
+              Log out
+            </Button>
+          )}
         </div>
       </div>
       <nav className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 pb-3 sm:px-6 md:hidden" aria-label="Mobile navigation">
@@ -747,6 +769,7 @@ function Home() {
   const [theme, setTheme] = useState<"light" | "dark">(() =>
     typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
   );
+  const [account, setAccount] = useState<SafeAccount | null>(null);
   const [onboarded, setOnboarded] = useState(false);
   const [profile, setProfile] = useState<OnboardingData>(defaultProfile);
   const [selectedApp, setSelectedApp] = useState<AppRule>(appRules[0]);
@@ -1014,15 +1037,97 @@ function Home() {
     void recordEvent("bridge_boost");
   }
 
+  function handleAuthed(authed: SafeAccount) {
+    setAccount(authed);
+    const saved = authed.profile;
+    setProfile({
+      name: saved.name || authed.name,
+      age: saved.age || String(authed.age ?? ""),
+      currentHours: saved.currentHours,
+      goalHours: saved.goalHours,
+      feelings: saved.feelings,
+      hardestTime: saved.hardestTime,
+      topApps: saved.topApps.length > 0 ? saved.topApps : ["Instagram"],
+      appleConnected: saved.appleConnected,
+      notificationsAllowed: saved.notificationsAllowed,
+    });
+    setCoins(saved.coins);
+    setStreak(saved.streak);
+    setCompletedActions(saved.completedActions);
+    setOnboarded(saved.onboardingComplete);
+  }
+
+  async function handleLogout() {
+    try {
+      await apiLogout();
+    } catch {
+      // logout is local-state only; ignore network errors
+    }
+    setAccount(null);
+    setOnboarded(false);
+    setProfile(defaultProfile);
+    setCoins(84);
+    setStreak(9);
+    setCompletedActions([]);
+    setPlan(null);
+    setPlanError(null);
+    setSurpriseReward(null);
+    setShieldOpen(false);
+    setFocusActive(false);
+    setQuests(initialQuests);
+    setLocation("/");
+  }
+
+  function persistProfile(patch: Partial<SafeAccount["profile"]>) {
+    if (!account) return;
+    void patchProfile(account.id, patch).then((updated) => {
+      setAccount(updated);
+    }).catch(() => {
+      // best-effort persistence; UI keeps working
+    });
+  }
+
+  // Save important progress whenever it changes after login.
+  useEffect(() => {
+    if (!account) return;
+    persistProfile({ coins, streak, completedActions });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account?.id, coins, streak, completedActions.join(",")]);
+
+  function finishOnboarding() {
+    setOnboarded(true);
+    if (account) {
+      persistProfile({
+        onboardingComplete: true,
+        name: profile.name,
+        age: profile.age,
+        currentHours: profile.currentHours,
+        goalHours: profile.goalHours,
+        feelings: profile.feelings,
+        hardestTime: profile.hardestTime,
+        topApps: profile.topApps,
+        appleConnected: profile.appleConnected,
+        notificationsAllowed: profile.notificationsAllowed,
+        coins,
+        streak,
+        completedActions,
+      });
+    }
+  }
+
+  if (!account) {
+    return <AccountGate onAuthed={handleAuthed} />;
+  }
+
   if (!onboarded) {
-    return <Onboarding profile={profile} setProfile={setProfile} onFinish={() => setOnboarded(true)} theme={theme} setTheme={setTheme} />;
+    return <Onboarding profile={profile} setProfile={setProfile} onFinish={finishOnboarding} theme={theme} setTheme={setTheme} />;
   }
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.16),transparent_34%),radial-gradient(circle_at_80%_20%,hsl(var(--chart-4)/0.18),transparent_24%)]" />
 
-      <AppHeader theme={theme} setTheme={setTheme} />
+      <AppHeader theme={theme} setTheme={setTheme} account={account} onLogout={handleLogout} />
 
       {currentPage === "home" && <section className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-10">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="rounded-[2rem] bg-card p-5 shadow-sm sm:p-6">

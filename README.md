@@ -104,3 +104,59 @@ event endpoint feedback.
 The engine does not diagnose, treat, or replace any clinical care. It
 is a behavior-design layer that tunes friction, rewards, and copy to
 the user's stated goals.
+
+## Demo accounts and saved profiles
+
+The web prototype gates onboarding behind a tiny account system so a
+returning user can see their plan, coins, and streak again.
+
+- **Storage** — accounts and profile/progress live in the existing
+  SQLite database (`data.db`) via Drizzle. Array fields (feelings, top
+  apps, completed actions) are stored as JSON text.
+- **Passwords** — hashed with Node's `crypto.scryptSync` plus a random
+  16-byte salt per account. Plaintext is never stored. Hash and salt
+  are stripped from every API response.
+- **Sessions** — there are no cookies, no `localStorage`, no
+  `sessionStorage`, and no `IndexedDB`. The active session is React
+  state. Refreshing the page returns you to the account gate; that's
+  intentional for the demo.
+- **Logout** — the **Log out** button in the app header clears
+  in-memory state and returns you to the account gate.
+
+### Auth API
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/auth/signup` | Create an account. Returns the safe user/profile (no hash, no salt). |
+| `POST` | `/api/auth/login` | Verify credentials. Returns the safe user/profile. |
+| `POST` | `/api/auth/logout` | Returns `{ ok: true }`. |
+| `GET`  | `/api/accounts/:id/profile` | Read the saved profile for an account. |
+| `PATCH`| `/api/accounts/:id/profile` | Save profile/progress fields (onboarding flag, coins, streak, completed actions, etc). |
+
+Errors are surfaced clearly: `409` on duplicate signup, `401` on bad
+login, `400` on validation failures, `404` on unknown account ids.
+
+### Auth tests
+
+A deterministic test script covers signup, duplicate signup, bad
+password, and profile save/load:
+
+```bash
+npx tsx script/auth-test.ts
+```
+
+It writes to a temp database (`LATCH_DB_PATH`) so it never touches
+your dev `data.db`.
+
+### Security limitations (demo only)
+
+- Without cookies/localStorage there is no persistent client session,
+  so refreshing the tab signs the user out.
+- The API does not yet validate the caller's identity against
+  `:id`. In production you'd want a real session token, CSRF
+  protection, and authorization checks on the profile routes.
+- Password hashing uses scrypt with sensible defaults; a production
+  app should also rate-limit login attempts and pin the scrypt cost
+  parameters explicitly.
+- The local SQLite file holds plaintext profile data. Don't commit
+  `data.db` and don't ship the demo as a production auth system.

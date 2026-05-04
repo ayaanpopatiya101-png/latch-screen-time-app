@@ -2,6 +2,34 @@ import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const accounts = sqliteTable("accounts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  username: text("username").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  passwordSalt: text("password_salt").notNull(),
+  name: text("name").notNull(),
+  age: integer("age").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+export const accountProfiles = sqliteTable("account_profiles", {
+  accountId: integer("account_id").primaryKey().references(() => accounts.id),
+  onboardingComplete: integer("onboarding_complete", { mode: "boolean" }).notNull().default(false),
+  name: text("name").notNull(),
+  age: text("age").notNull().default(""),
+  currentHours: integer("current_hours").notNull().default(5),
+  goalHours: integer("goal_hours").notNull().default(2),
+  feelings: text("feelings").notNull().default("[]"),
+  hardestTime: text("hardest_time").notNull().default("Night"),
+  topApps: text("top_apps").notNull().default("[\"Instagram\"]"),
+  appleConnected: integer("apple_connected", { mode: "boolean" }).notNull().default(false),
+  notificationsAllowed: integer("notifications_allowed", { mode: "boolean" }).notNull().default(false),
+  coins: integer("coins").notNull().default(84),
+  streak: integer("streak").notNull().default(9),
+  completedActions: text("completed_actions").notNull().default("[]"),
+  updatedAt: text("updated_at").notNull(),
+});
+
 export const profiles = sqliteTable("profiles", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -53,3 +81,64 @@ export type InsertFocusSession = z.infer<typeof insertFocusSessionSchema>;
 export type FocusSession = typeof focusSessions.$inferSelect;
 export type InsertQuest = z.infer<typeof insertQuestSchema>;
 export type Quest = typeof quests.$inferSelect;
+
+export type Account = typeof accounts.$inferSelect;
+export type AccountProfile = typeof accountProfiles.$inferSelect;
+
+export const signupSchema = z.object({
+  username: z.string().trim().min(3).max(64),
+  password: z.string().min(6).max(200),
+  name: z.string().trim().min(1).max(80),
+  age: z.coerce.number().int().min(8).max(120),
+});
+
+export const loginSchema = z.object({
+  username: z.string().trim().min(1),
+  password: z.string().min(1),
+});
+
+const stringArray = z.array(z.string());
+
+export const profilePatchSchema = z.object({
+  onboardingComplete: z.boolean().optional(),
+  name: z.string().optional(),
+  age: z.string().optional(),
+  currentHours: z.number().optional(),
+  goalHours: z.number().optional(),
+  feelings: stringArray.optional(),
+  hardestTime: z.string().optional(),
+  topApps: stringArray.optional(),
+  appleConnected: z.boolean().optional(),
+  notificationsAllowed: z.boolean().optional(),
+  coins: z.number().int().optional(),
+  streak: z.number().int().optional(),
+  completedActions: stringArray.optional(),
+});
+
+export type SignupInput = z.infer<typeof signupSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type ProfilePatch = z.infer<typeof profilePatchSchema>;
+
+export type SafeProfile = {
+  onboardingComplete: boolean;
+  name: string;
+  age: string;
+  currentHours: number;
+  goalHours: number;
+  feelings: string[];
+  hardestTime: string;
+  topApps: string[];
+  appleConnected: boolean;
+  notificationsAllowed: boolean;
+  coins: number;
+  streak: number;
+  completedActions: string[];
+};
+
+export type SafeAccount = {
+  id: number;
+  username: string;
+  name: string;
+  age: number;
+  profile: SafeProfile;
+};
