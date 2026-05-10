@@ -1,13 +1,17 @@
 import type { Express } from "express";
 import { createServer } from 'node:http';
 import type { Server } from 'node:http';
+import { z } from "zod";
 import { storage } from "./storage";
 import {
+  appEventBulkSchema,
+  appEventInputSchema,
   insertFocusSessionSchema,
   insertProfileSchema,
   insertProtectedAppSchema,
   insertQuestSchema,
   loginSchema,
+  patternReviewSchema,
   profilePatchSchema,
   signupSchema,
 } from "@shared/schema";
@@ -18,6 +22,12 @@ import {
   eventSchema,
   planRequestSchema,
 } from "./personalization";
+import {
+  buildBlockRule,
+  buildDemoEvents,
+  detectPatterns,
+  type PeriodType,
+} from "./habitPatterns";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -175,6 +185,168 @@ export async function registerRoutes(
       return;
     }
     res.json({ account });
+  });
+
+  app.post("/api/app-events", async (req, res) => {
+    const parsed = appEventInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid app event", errors: parsed.error.flatten() });
+      return;
+    }
+    const event = await storage.recordAppEvent(parsed.data);
+    res.status(201).json({ event });
+  });
+
+  app.post("/api/app-events/bulk", async (req, res) => {
+    const parsed = appEventBulkSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid bulk events", errors: parsed.error.flatten() });
+      return;
+    }
+    const inserted = await storage.recordAppEventsBulk(parsed.data.events);
+    res.status(201).json({ inserted });
+  });
+
+  app.get("/api/app-patterns/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const periodQuery = z
+      .enum(["week", "month", "year"])
+      .default("month")
+      .safeParse(req.query.period);
+    if (!periodQuery.success) {
+      res.status(400).json({ message: "Invalid period. Use week, month, or year." });
+      return;
+    }
+    const periodType = periodQuery.data as PeriodType;
+    const totalDays = periodType === "week" ? 7 : periodType === "month" ? 30 : 365;
+    const now = new Date();
+    const since = new Date(now.getTime() - totalDays * 24 * 60 * 60 * 1000).toISOString();
+    const events = await storage.listRecentAppEvents(id, since);
+    const detected = detectPatterns(
+      id,
+      events.map((event) => ({
+        appName: event.appName,
+        category: event.category,
+        openedAt: event.openedAt,
+        contentTitle: event.contentTitle,
+        contentCategory: event.contentCategory,
+        productiveHint: event.productiveHint,
+      })),
+      periodType,
+      { now },
+    );
+
+    // Persist pattern rows so review answers can be recorded against them.
+    const existingPatterns = await storage.listHabitPatterns(id, periodType);
+    const existingByKey = new Map(existingPatterns.map((row) => [row.patternKey, row]));
+    const enriched = await Promise.all(
+      detected.map(async (pattern) => {
+        const row = await storage.upsertHabitPattern({
+          patternKey: pattern.patternKey,
+          accountId: id,
+          appName: pattern.appName,
+          periodType: pattern.periodType,
+          hourStart: pattern.hourStart,
+          hourEnd: pattern.hourEnd,
+          daysOpened: pattern.daysOpened,
+          totalDays: pattern.totalDays,
+        });
+        const previous = existingByKey.get(pattern.patternKey);
+        return {
+          ...pattern,
+          status: row.status,
+          userAnswer: row.userAnswer ?? previous?.userAnswer ?? null,
+        };
+      }),
+    );
+
+    const blocks = await storage.listActiveBlockRules(id, now.toISOString());
+    res.json({ patterns: enriched, blockRules: blocks, periodType, totalDays });
+  });
+
+  app.post("/api/app-patterns/review", async (req, res) => {
+    const parsed = patternReviewSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid review", errors: parsed.error.flatten() });
+      return;
+    }
+    const pattern = await storage.getHabitPattern(parsed.data.patternKey);
+    if (!pattern || pattern.accountId !== parsed.data.accountId) {
+      res.status(404).json({ message: "Pattern not found for this account." });
+      return;
+    }
+    if (parsed.data.answer === "productive") {
+      const updated = await storage.setPatternStatus(
+        parsed.data.patternKey,
+        "productive",
+        "productive",
+      );
+      res.json({ pattern: updated, blockRule: null });
+      return;
+    }
+
+    // Unproductive: create a block rule for next month at the detected window.
+    const existing = await storage.findBlockRuleByPattern(parsed.data.patternKey);
+    if (existing) {
+      const updated = await storage.setPatternStatus(
+        parsed.data.patternKey,
+        "blocked",
+        "unproductive",
+      );
+      res.json({ pattern: updated, blockRule: existing });
+      return;
+    }
+
+    const rule = buildBlockRule(parsed.data.accountId, {
+      patternKey: pattern.patternKey,
+      appName: pattern.appName,
+      periodType: pattern.periodType as PeriodType,
+      hourStart: pattern.hourStart,
+      hourEnd: pattern.hourEnd,
+      daysOpened: pattern.daysOpened,
+      totalDays: pattern.totalDays,
+      confidence: 1,
+      suggestedQuestion: "",
+      productivityUnknown: false,
+      productivity: "unproductive",
+      recommendedAction: "block_next_month",
+      sampleContent: [],
+      explanation: "",
+    });
+    const inserted = await storage.insertBlockRule(rule);
+    const updated = await storage.setPatternStatus(
+      parsed.data.patternKey,
+      "blocked",
+      "unproductive",
+    );
+    res.status(201).json({ pattern: updated, blockRule: inserted });
+  });
+
+  app.get("/api/block-rules/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const rules = await storage.listActiveBlockRules(id, new Date().toISOString());
+    res.json({ blockRules: rules });
+  });
+
+  app.post("/api/app-patterns/demo-seed", async (req, res) => {
+    const parsed = z
+      .object({ accountId: z.number().int().positive() })
+      .safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid demo seed", errors: parsed.error.flatten() });
+      return;
+    }
+    const events = buildDemoEvents(parsed.data.accountId, new Date());
+    const inserted = await storage.recordAppEventsBulk(events);
+    res.status(201).json({ inserted });
   });
 
   return httpServer;

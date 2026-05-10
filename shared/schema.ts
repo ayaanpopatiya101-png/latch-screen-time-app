@@ -82,6 +82,80 @@ export type FocusSession = typeof focusSessions.$inferSelect;
 export type InsertQuest = z.infer<typeof insertQuestSchema>;
 export type Quest = typeof quests.$inferSelect;
 
+export const appEvents = sqliteTable("app_events", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  appName: text("app_name").notNull(),
+  category: text("category").notNull().default("unknown"),
+  openedAt: text("opened_at").notNull(),
+  durationMinutes: integer("duration_minutes"),
+  contentTitle: text("content_title"),
+  contentCategory: text("content_category"),
+  productiveHint: text("productive_hint"),
+  source: text("source").notNull().default("demo"),
+  createdAt: text("created_at").notNull(),
+});
+
+export const habitPatterns = sqliteTable("habit_patterns", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  patternKey: text("pattern_key").notNull(),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  appName: text("app_name").notNull(),
+  periodType: text("period_type").notNull(),
+  hourStart: integer("hour_start").notNull(),
+  hourEnd: integer("hour_end").notNull(),
+  daysOpened: integer("days_opened").notNull(),
+  totalDays: integer("total_days").notNull(),
+  status: text("status").notNull().default("pending"),
+  userAnswer: text("user_answer"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const blockRules = sqliteTable("block_rules", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  appName: text("app_name").notNull(),
+  hourStart: integer("hour_start").notNull(),
+  hourEnd: integer("hour_end").notNull(),
+  activeFrom: text("active_from").notNull(),
+  activeUntil: text("active_until").notNull(),
+  reason: text("reason").notNull().default(""),
+  sourcePatternKey: text("source_pattern_key").notNull().default(""),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").notNull(),
+});
+
+export type AppEvent = typeof appEvents.$inferSelect;
+export type HabitPatternRow = typeof habitPatterns.$inferSelect;
+export type BlockRule = typeof blockRules.$inferSelect;
+
+export const appEventInputSchema = z.object({
+  accountId: z.number().int().positive(),
+  appName: z.string().trim().min(1).max(80),
+  category: z.string().trim().min(1).max(40).default("unknown"),
+  openedAt: z.string().min(1),
+  durationMinutes: z.number().min(0).max(24 * 60).optional(),
+  contentTitle: z.string().max(200).optional(),
+  contentCategory: z.string().max(60).optional(),
+  productiveHint: z.enum(["productive", "unproductive", "unknown"]).optional(),
+  source: z.enum(["demo", "manual", "native"]).default("demo"),
+});
+
+export const appEventBulkSchema = z.object({
+  events: z.array(appEventInputSchema).min(1).max(2000),
+});
+
+export const patternReviewSchema = z.object({
+  accountId: z.number().int().positive(),
+  patternKey: z.string().min(1),
+  answer: z.enum(["productive", "unproductive"]),
+});
+
+export type AppEventInput = z.infer<typeof appEventInputSchema>;
+export type AppEventBulkInput = z.infer<typeof appEventBulkSchema>;
+export type PatternReviewInput = z.infer<typeof patternReviewSchema>;
+
 export type Account = typeof accounts.$inferSelect;
 export type AccountProfile = typeof accountProfiles.$inferSelect;
 

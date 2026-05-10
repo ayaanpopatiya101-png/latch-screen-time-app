@@ -1,7 +1,10 @@
 import {
   accountProfiles,
   accounts,
+  appEvents,
+  blockRules,
   focusSessions,
+  habitPatterns,
   profiles,
   protectedApps,
   quests,
@@ -9,7 +12,11 @@ import {
 import type {
   Account,
   AccountProfile,
+  AppEvent,
+  AppEventInput,
+  BlockRule,
   FocusSession,
+  HabitPatternRow,
   InsertFocusSession,
   InsertProfile,
   InsertProtectedApp,
@@ -23,7 +30,7 @@ import type {
 } from '@shared/schema';
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
-import { eq } from "drizzle-orm";
+import { and, eq, gte } from "drizzle-orm";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 const dbPath = process.env.LATCH_DB_PATH ?? "data.db";
@@ -58,6 +65,53 @@ sqlite.exec(`
     completed_actions TEXT NOT NULL DEFAULT '[]',
     updated_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS app_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    app_name TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'unknown',
+    opened_at TEXT NOT NULL,
+    duration_minutes INTEGER,
+    content_title TEXT,
+    content_category TEXT,
+    productive_hint TEXT,
+    source TEXT NOT NULL DEFAULT 'demo',
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_app_events_account_opened
+    ON app_events(account_id, opened_at);
+  CREATE TABLE IF NOT EXISTS habit_patterns (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pattern_key TEXT NOT NULL,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    app_name TEXT NOT NULL,
+    period_type TEXT NOT NULL,
+    hour_start INTEGER NOT NULL,
+    hour_end INTEGER NOT NULL,
+    days_opened INTEGER NOT NULL,
+    total_days INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    user_answer TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_habit_patterns_key
+    ON habit_patterns(pattern_key);
+  CREATE TABLE IF NOT EXISTS block_rules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    app_name TEXT NOT NULL,
+    hour_start INTEGER NOT NULL,
+    hour_end INTEGER NOT NULL,
+    active_from TEXT NOT NULL,
+    active_until TEXT NOT NULL,
+    reason TEXT NOT NULL DEFAULT '',
+    source_pattern_key TEXT NOT NULL DEFAULT '',
+    enabled INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_block_rules_account
+    ON block_rules(account_id);
 `);
 
 export const db = drizzle(sqlite);
@@ -134,6 +188,40 @@ export interface IStorage {
   loginAccount(username: string, password: string): Promise<SafeAccount | null>;
   getAccountProfile(accountId: number): Promise<SafeAccount | undefined>;
   updateAccountProfile(accountId: number, patch: ProfilePatch): Promise<SafeAccount | undefined>;
+
+  recordAppEvent(input: AppEventInput): Promise<AppEvent>;
+  recordAppEventsBulk(inputs: AppEventInput[]): Promise<number>;
+  listRecentAppEvents(accountId: number, sinceIso: string): Promise<AppEvent[]>;
+  upsertHabitPattern(input: {
+    patternKey: string;
+    accountId: number;
+    appName: string;
+    periodType: string;
+    hourStart: number;
+    hourEnd: number;
+    daysOpened: number;
+    totalDays: number;
+  }): Promise<HabitPatternRow>;
+  getHabitPattern(patternKey: string): Promise<HabitPatternRow | undefined>;
+  setPatternStatus(
+    patternKey: string,
+    status: "pending" | "productive" | "unproductive" | "blocked",
+    userAnswer?: string | null,
+  ): Promise<HabitPatternRow | undefined>;
+  listHabitPatterns(accountId: number, periodType?: string): Promise<HabitPatternRow[]>;
+  insertBlockRule(input: {
+    accountId: number;
+    appName: string;
+    hourStart: number;
+    hourEnd: number;
+    activeFrom: string;
+    activeUntil: string;
+    reason: string;
+    sourcePatternKey: string;
+    enabled: boolean;
+  }): Promise<BlockRule>;
+  listActiveBlockRules(accountId: number, nowIso: string): Promise<BlockRule[]>;
+  findBlockRuleByPattern(patternKey: string): Promise<BlockRule | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -279,6 +367,202 @@ export class DatabaseStorage implements IStorage {
 
     db.update(accountProfiles).set(update).where(eq(accountProfiles.accountId, accountId)).run();
     return this.getAccountProfile(accountId);
+  }
+
+  async recordAppEvent(input: AppEventInput): Promise<AppEvent> {
+    const now = new Date().toISOString();
+    return db
+      .insert(appEvents)
+      .values({
+        accountId: input.accountId,
+        appName: input.appName,
+        category: input.category ?? "unknown",
+        openedAt: input.openedAt,
+        durationMinutes: input.durationMinutes ?? null,
+        contentTitle: input.contentTitle ?? null,
+        contentCategory: input.contentCategory ?? null,
+        productiveHint: input.productiveHint ?? null,
+        source: input.source ?? "demo",
+        createdAt: now,
+      })
+      .returning()
+      .get();
+  }
+
+  async recordAppEventsBulk(inputs: AppEventInput[]): Promise<number> {
+    if (inputs.length === 0) return 0;
+    const now = new Date().toISOString();
+    const rows = inputs.map((input) => ({
+      accountId: input.accountId,
+      appName: input.appName,
+      category: input.category ?? "unknown",
+      openedAt: input.openedAt,
+      durationMinutes: input.durationMinutes ?? null,
+      contentTitle: input.contentTitle ?? null,
+      contentCategory: input.contentCategory ?? null,
+      productiveHint: input.productiveHint ?? null,
+      source: input.source ?? "demo",
+      createdAt: now,
+    }));
+    // better-sqlite3 + drizzle supports values() with an array.
+    db.insert(appEvents).values(rows).run();
+    return rows.length;
+  }
+
+  async listRecentAppEvents(accountId: number, sinceIso: string): Promise<AppEvent[]> {
+    return db
+      .select()
+      .from(appEvents)
+      .where(
+        and(
+          eq(appEvents.accountId, accountId),
+          gte(appEvents.openedAt, sinceIso),
+        ),
+      )
+      .all();
+  }
+
+  async upsertHabitPattern(input: {
+    patternKey: string;
+    accountId: number;
+    appName: string;
+    periodType: string;
+    hourStart: number;
+    hourEnd: number;
+    daysOpened: number;
+    totalDays: number;
+  }): Promise<HabitPatternRow> {
+    const now = new Date().toISOString();
+    const existing = db
+      .select()
+      .from(habitPatterns)
+      .where(eq(habitPatterns.patternKey, input.patternKey))
+      .get();
+    if (existing) {
+      db.update(habitPatterns)
+        .set({
+          daysOpened: input.daysOpened,
+          totalDays: input.totalDays,
+          updatedAt: now,
+        })
+        .where(eq(habitPatterns.patternKey, input.patternKey))
+        .run();
+      return db
+        .select()
+        .from(habitPatterns)
+        .where(eq(habitPatterns.patternKey, input.patternKey))
+        .get() as HabitPatternRow;
+    }
+    return db
+      .insert(habitPatterns)
+      .values({
+        patternKey: input.patternKey,
+        accountId: input.accountId,
+        appName: input.appName,
+        periodType: input.periodType,
+        hourStart: input.hourStart,
+        hourEnd: input.hourEnd,
+        daysOpened: input.daysOpened,
+        totalDays: input.totalDays,
+        status: "pending",
+        userAnswer: null,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning()
+      .get();
+  }
+
+  async getHabitPattern(patternKey: string): Promise<HabitPatternRow | undefined> {
+    return db
+      .select()
+      .from(habitPatterns)
+      .where(eq(habitPatterns.patternKey, patternKey))
+      .get();
+  }
+
+  async setPatternStatus(
+    patternKey: string,
+    status: "pending" | "productive" | "unproductive" | "blocked",
+    userAnswer?: string | null,
+  ): Promise<HabitPatternRow | undefined> {
+    const now = new Date().toISOString();
+    db.update(habitPatterns)
+      .set({ status, userAnswer: userAnswer ?? null, updatedAt: now })
+      .where(eq(habitPatterns.patternKey, patternKey))
+      .run();
+    return this.getHabitPattern(patternKey);
+  }
+
+  async listHabitPatterns(accountId: number, periodType?: string): Promise<HabitPatternRow[]> {
+    if (periodType) {
+      return db
+        .select()
+        .from(habitPatterns)
+        .where(
+          and(
+            eq(habitPatterns.accountId, accountId),
+            eq(habitPatterns.periodType, periodType),
+          ),
+        )
+        .all();
+    }
+    return db
+      .select()
+      .from(habitPatterns)
+      .where(eq(habitPatterns.accountId, accountId))
+      .all();
+  }
+
+  async insertBlockRule(input: {
+    accountId: number;
+    appName: string;
+    hourStart: number;
+    hourEnd: number;
+    activeFrom: string;
+    activeUntil: string;
+    reason: string;
+    sourcePatternKey: string;
+    enabled: boolean;
+  }): Promise<BlockRule> {
+    const now = new Date().toISOString();
+    return db
+      .insert(blockRules)
+      .values({
+        accountId: input.accountId,
+        appName: input.appName,
+        hourStart: input.hourStart,
+        hourEnd: input.hourEnd,
+        activeFrom: input.activeFrom,
+        activeUntil: input.activeUntil,
+        reason: input.reason,
+        sourcePatternKey: input.sourcePatternKey,
+        enabled: input.enabled,
+        createdAt: now,
+      })
+      .returning()
+      .get();
+  }
+
+  async listActiveBlockRules(accountId: number, nowIso: string): Promise<BlockRule[]> {
+    return db
+      .select()
+      .from(blockRules)
+      .where(
+        and(
+          eq(blockRules.accountId, accountId),
+          gte(blockRules.activeUntil, nowIso),
+        ),
+      )
+      .all();
+  }
+
+  async findBlockRuleByPattern(patternKey: string): Promise<BlockRule | undefined> {
+    return db
+      .select()
+      .from(blockRules)
+      .where(eq(blockRules.sourcePatternKey, patternKey))
+      .get();
   }
 }
 

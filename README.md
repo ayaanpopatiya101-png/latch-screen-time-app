@@ -105,6 +105,68 @@ The engine does not diagnose, treat, or replace any clinical care. It
 is a behavior-design layer that tunes friction, rewards, and copy to
 the user's stated goals.
 
+## App habit pattern engine
+
+Latch also ships a habit pattern engine that learns when and what apps a
+user opens over week / month / year windows. The engine lives in
+[`server/habitPatterns.ts`](./server/habitPatterns.ts) and is wired into
+Express in [`server/routes.ts`](./server/routes.ts).
+
+It groups app-open events into deterministic 3-hour buckets (0–3, 3–6,
+6–9, …) and fires a pattern when usage repeats often enough in that
+window:
+
+| Period | Threshold (percent of days) | Threshold (absolute days) |
+| --- | --- | --- |
+| Week (7 days) | 55% | 4 |
+| Month (30 days) | 60% | 15 |
+| Year (365 days) | — (hard floor) | 120 |
+
+A pattern fires when **either** threshold is met. Output records include
+the app name, period, days opened / total days, 3-hour window, a
+confidence number, a transparent productive/unproductive verdict, and a
+recommended action.
+
+Productivity classification is intentionally simple and rule-based.
+Keywords like `education`, `tutorial`, `workout`, `productivity` mark a
+session as likely productive; `shorts`, `reels`, `entertainment`,
+`gaming` mark it as likely unproductive; everything else stays unknown
+and Lumi asks the user via the **Patterns** page (and in a real native
+app, a notification). When the user answers "No, block next month,"
+Latch creates a 30-day block rule scoped to that exact 3-hour window.
+
+### Pattern API
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/app-events` | Record one app open / use event. |
+| `POST` | `/api/app-events/bulk` | Bulk import (for demo or native sync). |
+| `GET`  | `/api/app-patterns/:accountId?period=week\|month\|year` | Detected patterns + active block rules. |
+| `POST` | `/api/app-patterns/review` | Mark a pattern productive or unproductive (creates a next-month block on "unproductive"). |
+| `GET`  | `/api/block-rules/:accountId` | List active block rules. |
+| `POST` | `/api/app-patterns/demo-seed` | Insert demo events for the current account. |
+
+### Pattern tests
+
+```bash
+npx tsx script/habit-patterns-test.ts
+```
+
+Covers the YouTube 22/30-days 4–7 PM example, productive content
+classification (no block created), unknown content asking the user,
+unproductive review creating a 30-day block rule, and the week / month /
+year thresholds.
+
+### Real-device events
+
+The web prototype cannot observe real iPhone or Android app opens. See
+[`ios/README.md`](./ios/README.md) for the contract a real device should
+use to forward `DeviceActivity` (iOS) or `UsageStatsManager` (Android)
+events to `POST /api/app-events` / `POST /api/app-events/bulk`. Block
+rules live on the server; the native app is responsible for actually
+enforcing them via `ManagedSettings` (iOS) or an Accessibility / Usage
+Access service (Android).
+
 ## Demo accounts and saved profiles
 
 The web prototype gates onboarding behind a tiny account system so a

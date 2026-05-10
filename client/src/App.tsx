@@ -47,6 +47,7 @@ import {
   type EventType,
 } from "@/lib/personalization";
 import { AccountGate } from "@/components/AccountGate";
+import { PatternsPage } from "@/components/PatternsPage";
 import { logout as apiLogout, patchProfile, type SafeAccount } from "@/lib/auth";
 
 type Mode = "soft" | "focus" | "hard";
@@ -687,6 +688,7 @@ const pageLinks = [
   { label: "Home", path: "/" },
   { label: "Bridge", path: "/bridge" },
   { label: "Shield", path: "/shield" },
+  { label: "Patterns", path: "/patterns" },
   { label: "Swaps", path: "/swaps" },
   { label: "Shop", path: "/shop" },
   { label: "Focus", path: "/focus" },
@@ -794,7 +796,7 @@ function Home() {
   const [planError, setPlanError] = useState<string | null>(null);
   const [location, setLocation] = useLocation();
   const rawPage = location === "/" ? "home" : location.replace("/", "");
-  const currentPage = ["home", "bridge", "shield", "swaps", "shop", "focus", "quests", "crew"].includes(rawPage) ? rawPage : "home";
+  const currentPage = ["home", "bridge", "shield", "patterns", "swaps", "shop", "focus", "quests", "crew"].includes(rawPage) ? rawPage : "home";
 
   const adaptiveAppRules = useMemo<AppRule[]>(() => {
     if (!plan) return appRules;
@@ -1287,6 +1289,7 @@ function Home() {
           {[
             ["Bridge", "/bridge", "Fun transition from phone mode to real-life mode."],
             ["Shield", "/shield", "Slow down apps before they hook you."],
+            ["Patterns", "/patterns", "See repeated app habits and schedule next-month blocks."],
             ["Swaps", "/swaps", "Pick real-life actions for mystery rewards."],
             ["Shop", "/shop", "Spend coins on earned rewards."],
             ["Focus", "/focus", "Run phone-free sprints."],
@@ -1572,6 +1575,8 @@ function Home() {
           </AnimatePresence>
         </article>
       </section>}
+
+      {currentPage === "patterns" && <PatternsPage accountId={account.id} />}
 
       {currentPage === "focus" && <section id="focus" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
         <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-focus">

@@ -196,3 +196,32 @@ compilation is not run automatically**. Verified in this repo:
 To get real type checking, open the project on a Mac with Xcode and run
 *Product -> Build*; that's the first thing you'll do once you have the
 hardware.
+
+---
+
+## Forwarding real app-open events to the Latch backend
+
+The web prototype exposes habit-pattern APIs that accept real-device app
+open events. Once the iOS app has `DeviceActivityMonitor` callbacks
+firing, post each open event to the Latch server:
+
+| Endpoint | Body |
+| --- | --- |
+| `POST /api/app-events` | `{ accountId, appName, category, openedAt, durationMinutes?, contentTitle?, contentCategory?, productiveHint?, source: "native" }` |
+| `POST /api/app-events/bulk` | `{ events: [...same shape...] }` for batched sync. |
+
+`openedAt` must be an ISO 8601 timestamp. The backend's
+`server/habitPatterns.ts` groups events into 3-hour buckets and detects
+repeated patterns over week / month / year windows. When the user marks a
+pattern as unproductive, the backend creates a 30-day block rule via
+`POST /api/app-patterns/review`.
+
+Important: the web UI can only *record* patterns and *schedule* block
+rules. Actual enforcement on iOS still requires the existing
+`ManagedSettings` shield path (and on Android, an Accessibility / Usage
+Access service). The Patterns API is the shared decision layer; the
+native app is the enforcement layer.
+
+Android: the equivalent data source is `UsageStatsManager`. Map each
+`UsageEvents.Event.MOVE_TO_FOREGROUND` event to the same JSON shape and
+POST to `/api/app-events/bulk` on a sync cadence.
