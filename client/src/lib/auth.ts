@@ -12,6 +12,14 @@ export type SafeProfile = {
   coins: number;
   streak: number;
   completedActions: string[];
+  latchCredits: number;
+  unlockMinutes: number;
+  brainEnergy: number;
+  dailyGoalMinutes: number;
+  lastGoalDay: string;
+  weeklyPoints: number;
+  emergencyPasses: number;
+  doomscrollNudges: boolean;
 };
 
 export type SafeAccount = {

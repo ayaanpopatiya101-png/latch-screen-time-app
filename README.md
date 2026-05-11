@@ -222,3 +222,84 @@ your dev `data.db`.
   parameters explicitly.
 - The local SQLite file holds plaintext profile data. Don't commit
   `data.db` and don't ship the demo as a production auth system.
+
+## Engagement loops (new)
+
+Latch now layers in the best ideas from BePresent, Opal, and Unrot.
+None of these add new permissions to the web demo — they're modeled in
+the backend so the iOS build can connect them to Apple's ScreenTime
+APIs later.
+
+### Earn & Unlock (Unrot-inspired)
+
+A separate currency from the existing coin economy:
+
+- **Latch Credits** are earned by completing offline actions (walk,
+  breathing, journal, workout, gratitude, homework block, reading,
+  texting a real friend).
+- **Spend** credits to unlock short, capped app windows at a fixed
+  rate of 2 credits per minute. The unlocked time is banked on the
+  profile (`unlockMinutes`), and the iOS build will close the app when
+  the timer runs out.
+- **Brain energy** (0–100) reacts to the loop: offline actions charge
+  Lumi, spending on screen time drains a little. Visualized as a
+  meter on Home and on the Earn page.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/credits/earn` | `{ accountId, source, amount, note? }` — adds credits and ledger entry. |
+| `POST` | `/api/credits/spend` | `{ accountId, minutes, appName?, note? }` — deducts at 2 credits/min, banks unlock minutes. |
+| `GET`  | `/api/credits/ledger/:accountId` | Recent earn/spend entries (default 30). |
+
+### Focus Plans (Opal-inspired)
+
+Schedule recurring focus windows with a difficulty level:
+
+- **Gentle** — soft block + quick pause, easy to bypass.
+- **Friction** — adds delays and a mini quiz; bypass costs credits.
+- **Deep Lock** — hardcore, no bypass until the window ends.
+
+Plans also store break policy (`none`, `five_min`, `pomodoro`), the
+list of blocked apps, day-of-week mask, and emergency pass count.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET`    | `/api/focus-plans/:accountId` | List a user's plans. |
+| `POST`   | `/api/focus-plans` | Create a plan. |
+| `PATCH`  | `/api/focus-plans/:id/toggle` | Enable / pause. |
+| `DELETE` | `/api/focus-plans/:id` | Remove. |
+
+### Daily goals, doomscroll nudges, reports (BePresent-inspired)
+
+- **Daily goal** — `dailyGoalMinutes` (default 120). One check-in per
+  day moves the streak up if the user stayed under, and grants 10
+  credits + 20 weekly points.
+- **Hourly doomscroll nudges** — opt-in via `doomscrollNudges` flag.
+- **Daily / weekly report** — aggregates ledger entries to show
+  earned/spent today, earned this week, offline actions, and an
+  estimated minutes-saved number.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/daily-goal/check-in` | `{ accountId, minutesUsed }` — bumps streak + credits if under goal. |
+| `GET`  | `/api/daily-report/:accountId` | Combined account + report payload. |
+
+### Accountability buddies
+
+Simulated weekly leaderboard with seeded buddies. The mobile build
+swaps the seed for real room IDs and push.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET`  | `/api/accountability/:accountId` | Lists buddies; seeds 3 defaults on first call. |
+| `POST` | `/api/accountability/challenge` | Invite a buddy by name + challenge title. |
+
+### Tests
+
+```bash
+npx tsx script/credits-test.ts
+```
+
+Covers credit earn/spend math, the focus-plan CRUD round trip, buddy
+seeding, and ledger ordering. Uses a disposable database via
+`LATCH_DB_PATH`.

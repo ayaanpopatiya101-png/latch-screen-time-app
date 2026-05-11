@@ -20,7 +20,6 @@ import {
   Lock,
   Moon,
   ShoppingBag,
-  Shield,
   Smartphone,
   Sparkles,
   Sprout,
@@ -48,6 +47,12 @@ import {
 } from "@/lib/personalization";
 import { AccountGate } from "@/components/AccountGate";
 import { PatternsPage } from "@/components/PatternsPage";
+import { EarnUnlockPage } from "@/components/EarnUnlockPage";
+import { FocusPlansPage } from "@/components/FocusPlansPage";
+import { DailyGoalCard } from "@/components/DailyGoalCard";
+import { AccountabilityLeaderboard } from "@/components/AccountabilityLeaderboard";
+import { DoomscrollNudges } from "@/components/DoomscrollNudges";
+import { DailyReportCard } from "@/components/DailyReportCard";
 import { logout as apiLogout, patchProfile, type SafeAccount } from "@/lib/auth";
 
 type Mode = "soft" | "focus" | "hard";
@@ -686,6 +691,8 @@ function ModePill({ mode }: { mode: Mode }) {
 
 const pageLinks = [
   { label: "Home", path: "/" },
+  { label: "Earn", path: "/earn" },
+  { label: "Plans", path: "/plans" },
   { label: "Bridge", path: "/bridge" },
   { label: "Shield", path: "/shield" },
   { label: "Patterns", path: "/patterns" },
@@ -796,7 +803,7 @@ function Home() {
   const [planError, setPlanError] = useState<string | null>(null);
   const [location, setLocation] = useLocation();
   const rawPage = location === "/" ? "home" : location.replace("/", "");
-  const currentPage = ["home", "bridge", "shield", "patterns", "swaps", "shop", "focus", "quests", "crew"].includes(rawPage) ? rawPage : "home";
+  const currentPage = ["home", "earn", "plans", "bridge", "shield", "patterns", "swaps", "shop", "focus", "quests", "crew"].includes(rawPage) ? rawPage : "home";
 
   const adaptiveAppRules = useMemo<AppRule[]>(() => {
     if (!plan) return appRules;
@@ -1185,8 +1192,8 @@ function Home() {
           <div className="grid grid-cols-2 gap-4">
             <StatCard label="Back today" value={formatHours(recoveredHours)} detail="Time you can win back" icon={AlarmClock} />
             <StatCard label="Streak" value={`${streak} days`} detail="Goal days in a row" icon={Flame} />
-            <StatCard label="Coins" value={String(coins)} detail="Earned by staying present" icon={Zap} />
-            <StatCard label="Shields" value="17" detail="Autopilot opens stopped" icon={Shield} />
+            <StatCard label="Credits" value={String(account.profile.latchCredits)} detail="Earned by real life" icon={Sparkles} />
+            <StatCard label="Brain energy" value={`${account.profile.brainEnergy}%`} detail="Lumi's health meter" icon={Brain} />
           </div>
           <div className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="panel-screen-time">
             <div className="flex items-center justify-between gap-3">
@@ -1284,9 +1291,36 @@ function Home() {
         </article>
       </section>}
 
+      {currentPage === "home" && (
+        <section className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
+          <div className="grid gap-6 lg:grid-cols-[1fr_1fr]" data-testid="section-home-engagement">
+            <DailyGoalCard
+              account={account}
+              onAccount={(next) => {
+                setAccount(next);
+                setCoins(next.profile.coins);
+                setStreak(next.profile.streak);
+              }}
+              onToast={setToast}
+              estimatedMinutesUsed={Math.round(profile.currentHours * 60)}
+            />
+            <DailyReportCard account={account} />
+          </div>
+          <div className="mt-6">
+            <DoomscrollNudges
+              account={account}
+              onAccount={(next) => setAccount(next)}
+              onToast={setToast}
+            />
+          </div>
+        </section>
+      )}
+
       {currentPage === "home" && <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
         <div className="grid gap-3 md:grid-cols-3" data-testid="section-page-launcher">
           {[
+            ["Earn", "/earn", "Do real things, earn Latch Credits, unlock app time."],
+            ["Plans", "/plans", "Scheduled focus plans with gentle, friction, or deep-lock depth."],
             ["Bridge", "/bridge", "Fun transition from phone mode to real-life mode."],
             ["Shield", "/shield", "Slow down apps before they hook you."],
             ["Patterns", "/patterns", "See repeated app habits and schedule next-month blocks."],
@@ -1578,6 +1612,23 @@ function Home() {
 
       {currentPage === "patterns" && <PatternsPage accountId={account.id} />}
 
+      {currentPage === "earn" && (
+        <EarnUnlockPage
+          account={account}
+          onAccount={(next) => {
+            setAccount(next);
+            setCoins(next.profile.coins);
+            setStreak(next.profile.streak);
+            setCompletedActions(next.profile.completedActions);
+          }}
+          onToast={(message) => setToast(message)}
+        />
+      )}
+
+      {currentPage === "plans" && (
+        <FocusPlansPage account={account} onToast={(message) => setToast(message)} />
+      )}
+
       {currentPage === "focus" && <section id="focus" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
         <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-focus">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -1681,6 +1732,12 @@ function Home() {
           </div>
         </article>
       </section>}
+
+      {currentPage === "crew" && (
+        <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+          <AccountabilityLeaderboard account={account} onToast={setToast} />
+        </section>
+      )}
 
       {currentPage === "crew" && <section id="crew" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
         <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-crew">

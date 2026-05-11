@@ -4,8 +4,13 @@ import type { Server } from 'node:http';
 import { z } from "zod";
 import { storage } from "./storage";
 import {
+  accountabilityChallengeSchema,
   appEventBulkSchema,
   appEventInputSchema,
+  creditEarnSchema,
+  creditSpendSchema,
+  dailyGoalCheckInSchema,
+  focusPlanInputSchema,
   insertFocusSessionSchema,
   insertProfileSchema,
   insertProtectedAppSchema,
@@ -347,6 +352,219 @@ export async function registerRoutes(
     const events = buildDemoEvents(parsed.data.accountId, new Date());
     const inserted = await storage.recordAppEventsBulk(events);
     res.status(201).json({ inserted });
+  });
+
+  // --- Latch Credits (earn & unlock) ---
+  app.post("/api/credits/earn", async (req, res) => {
+    const parsed = creditEarnSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid credit earn", errors: parsed.error.flatten() });
+      return;
+    }
+    try {
+      const result = await storage.earnCredits(parsed.data);
+      res.status(201).json(result);
+    } catch (err) {
+      if ((err as any)?.code === "ACCOUNT_NOT_FOUND") {
+        res.status(404).json({ message: (err as Error).message });
+        return;
+      }
+      throw err;
+    }
+  });
+
+  app.post("/api/credits/spend", async (req, res) => {
+    const parsed = creditSpendSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid credit spend", errors: parsed.error.flatten() });
+      return;
+    }
+    const result = await storage.spendCredits(parsed.data);
+    if ("error" in result) {
+      res.status(400).json({ message: result.error });
+      return;
+    }
+    res.status(201).json(result);
+  });
+
+  app.get("/api/credits/ledger/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 30));
+    const ledger = await storage.listCreditLedger(id, limit);
+    res.json({ ledger });
+  });
+
+  // --- Focus plans (Opal-style scheduled blocks) ---
+  app.get("/api/focus-plans/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const plans = await storage.listFocusPlans(id);
+    res.json({ plans });
+  });
+
+  app.post("/api/focus-plans", async (req, res) => {
+    const parsed = focusPlanInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid focus plan", errors: parsed.error.flatten() });
+      return;
+    }
+    if (parsed.data.endMinute <= parsed.data.startMinute) {
+      res.status(400).json({ message: "End time must be after start time." });
+      return;
+    }
+    const plan = await storage.createFocusPlan(parsed.data);
+    res.status(201).json({ plan });
+  });
+
+  app.patch("/api/focus-plans/:id/toggle", async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid plan id." });
+      return;
+    }
+    const parsed = z.object({ enabled: z.boolean() }).safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid toggle." });
+      return;
+    }
+    const plan = await storage.toggleFocusPlan(id, parsed.data.enabled);
+    if (!plan) {
+      res.status(404).json({ message: "Plan not found." });
+      return;
+    }
+    res.json({ plan });
+  });
+
+  app.delete("/api/focus-plans/:id", async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid plan id." });
+      return;
+    }
+    const ok = await storage.deleteFocusPlan(id);
+    if (!ok) {
+      res.status(404).json({ message: "Plan not found." });
+      return;
+    }
+    res.json({ ok: true });
+  });
+
+  // --- Daily goal check-in (BePresent-style) ---
+  app.post("/api/daily-goal/check-in", async (req, res) => {
+    const parsed = dailyGoalCheckInSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid check-in", errors: parsed.error.flatten() });
+      return;
+    }
+    const existing = await storage.getAccountProfile(parsed.data.accountId);
+    if (!existing) {
+      res.status(404).json({ message: "Account not found." });
+      return;
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    if (existing.profile.lastGoalDay === today) {
+      res.json({ account: existing, alreadyCheckedIn: true });
+      return;
+    }
+    const goalMinutes = existing.profile.dailyGoalMinutes;
+    const under = parsed.data.minutesUsed <= goalMinutes;
+    const patch = {
+      lastGoalDay: today,
+      streak: under ? existing.profile.streak + 1 : Math.max(0, existing.profile.streak - 1),
+      weeklyPoints: existing.profile.weeklyPoints + (under ? 20 : 0),
+      brainEnergy: Math.min(100, Math.max(0, existing.profile.brainEnergy + (under ? 8 : -10))),
+    };
+    const account = await storage.updateAccountProfile(parsed.data.accountId, patch);
+    if (under) {
+      await storage.earnCredits({
+        accountId: parsed.data.accountId,
+        source: "daily_goal",
+        amount: 10,
+        note: `Stayed under ${goalMinutes} minutes today`,
+      });
+    }
+    res.json({ account, met: under, goalMinutes, minutesUsed: parsed.data.minutesUsed });
+  });
+
+  // --- Daily / weekly summary report ---
+  app.get("/api/daily-report/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const account = await storage.getAccountProfile(id);
+    if (!account) {
+      res.status(404).json({ message: "Account not found." });
+      return;
+    }
+    const ledger = await storage.listCreditLedger(id, 100);
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+    const weekStart = new Date(dayStart);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    const earnedToday = ledger
+      .filter((e) => e.kind === "earn" && new Date(e.createdAt) >= dayStart)
+      .reduce((sum, e) => sum + e.amount, 0);
+    const spentToday = ledger
+      .filter((e) => e.kind === "spend" && new Date(e.createdAt) >= dayStart)
+      .reduce((sum, e) => sum + Math.abs(e.amount), 0);
+    const earnedThisWeek = ledger
+      .filter((e) => e.kind === "earn" && new Date(e.createdAt) >= weekStart)
+      .reduce((sum, e) => sum + e.amount, 0);
+    const offlineActionsToday = ledger.filter(
+      (e) =>
+        e.kind === "earn" &&
+        new Date(e.createdAt) >= dayStart &&
+        ["walk", "workout", "breathing", "journal", "gratitude", "homework", "read", "friend"].includes(e.source),
+    ).length;
+    const minutesSavedToday = Math.max(
+      0,
+      Math.round((account.profile.dailyGoalMinutes - account.profile.unlockMinutes) * 0.5) + offlineActionsToday * 8,
+    );
+    res.json({
+      account,
+      report: {
+        earnedToday,
+        spentToday,
+        earnedThisWeek,
+        offlineActionsToday,
+        minutesSavedToday,
+        weeklyPoints: account.profile.weeklyPoints,
+        streak: account.profile.streak,
+        brainEnergy: account.profile.brainEnergy,
+        unlockMinutes: account.profile.unlockMinutes,
+        latchCredits: account.profile.latchCredits,
+      },
+    });
+  });
+
+  // --- Accountability buddies / weekly leaderboard ---
+  app.get("/api/accountability/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const buddies = await storage.seedAccountabilityBuddiesIfEmpty(id);
+    res.json({ buddies });
+  });
+
+  app.post("/api/accountability/challenge", async (req, res) => {
+    const parsed = accountabilityChallengeSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid challenge", errors: parsed.error.flatten() });
+      return;
+    }
+    const buddy = await storage.createAccountabilityBuddy(parsed.data);
+    res.status(201).json({ buddy });
   });
 
   return httpServer;

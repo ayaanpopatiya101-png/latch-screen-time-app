@@ -27,7 +27,52 @@ export const accountProfiles = sqliteTable("account_profiles", {
   coins: integer("coins").notNull().default(84),
   streak: integer("streak").notNull().default(9),
   completedActions: text("completed_actions").notNull().default("[]"),
+  latchCredits: integer("latch_credits").notNull().default(20),
+  unlockMinutes: integer("unlock_minutes").notNull().default(0),
+  brainEnergy: integer("brain_energy").notNull().default(72),
+  dailyGoalMinutes: integer("daily_goal_minutes").notNull().default(120),
+  lastGoalDay: text("last_goal_day").notNull().default(""),
+  weeklyPoints: integer("weekly_points").notNull().default(0),
+  emergencyPasses: integer("emergency_passes").notNull().default(2),
+  doomscrollNudges: integer("doomscroll_nudges", { mode: "boolean" }).notNull().default(true),
   updatedAt: text("updated_at").notNull(),
+});
+
+export const creditLedger = sqliteTable("credit_ledger", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  kind: text("kind").notNull(),
+  source: text("source").notNull(),
+  amount: integer("amount").notNull(),
+  note: text("note").notNull().default(""),
+  proof: text("proof").notNull().default(""),
+  createdAt: text("created_at").notNull(),
+});
+
+export const focusPlans = sqliteTable("focus_plans", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  title: text("title").notNull(),
+  difficulty: text("difficulty").notNull().default("gentle"),
+  startMinute: integer("start_minute").notNull().default(540),
+  endMinute: integer("end_minute").notNull().default(660),
+  daysMask: integer("days_mask").notNull().default(31),
+  blockedApps: text("blocked_apps").notNull().default("[]"),
+  breakPolicy: text("break_policy").notNull().default("none"),
+  emergencyPassCount: integer("emergency_pass_count").notNull().default(1),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").notNull(),
+});
+
+export const accountabilityBuddies = sqliteTable("accountability_buddies", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  buddyName: text("buddy_name").notNull(),
+  challengeTitle: text("challenge_title").notNull().default("Stay under daily limit"),
+  minutesSaved: integer("minutes_saved").notNull().default(0),
+  pointsThisWeek: integer("points_this_week").notNull().default(0),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").notNull(),
 });
 
 export const profiles = sqliteTable("profiles", {
@@ -187,11 +232,78 @@ export const profilePatchSchema = z.object({
   coins: z.number().int().optional(),
   streak: z.number().int().optional(),
   completedActions: stringArray.optional(),
+  latchCredits: z.number().int().optional(),
+  unlockMinutes: z.number().int().optional(),
+  brainEnergy: z.number().int().min(0).max(100).optional(),
+  dailyGoalMinutes: z.number().int().min(15).max(720).optional(),
+  lastGoalDay: z.string().optional(),
+  weeklyPoints: z.number().int().optional(),
+  emergencyPasses: z.number().int().min(0).max(10).optional(),
+  doomscrollNudges: z.boolean().optional(),
+});
+
+export const creditEarnSchema = z.object({
+  accountId: z.number().int().positive(),
+  source: z.enum([
+    "walk",
+    "workout",
+    "breathing",
+    "journal",
+    "gratitude",
+    "homework",
+    "read",
+    "friend",
+    "focus_complete",
+    "shield_skip",
+    "daily_goal",
+  ]),
+  amount: z.number().int().min(1).max(120),
+  note: z.string().max(160).optional(),
+  proof: z.string().max(300).optional(),
+});
+
+export const creditSpendSchema = z.object({
+  accountId: z.number().int().positive(),
+  minutes: z.number().int().min(1).max(60),
+  appName: z.string().max(40).optional(),
+  note: z.string().max(160).optional(),
+});
+
+export const focusPlanInputSchema = z.object({
+  accountId: z.number().int().positive(),
+  title: z.string().trim().min(1).max(60),
+  difficulty: z.enum(["gentle", "friction", "deep_lock"]).default("gentle"),
+  startMinute: z.number().int().min(0).max(1439),
+  endMinute: z.number().int().min(1).max(1440),
+  daysMask: z.number().int().min(0).max(127).default(31),
+  blockedApps: stringArray.default([]),
+  breakPolicy: z.enum(["none", "five_min", "pomodoro"]).default("none"),
+  emergencyPassCount: z.number().int().min(0).max(10).default(1),
+  enabled: z.boolean().default(true),
+});
+
+export const dailyGoalCheckInSchema = z.object({
+  accountId: z.number().int().positive(),
+  minutesUsed: z.number().int().min(0).max(1440),
+});
+
+export const accountabilityChallengeSchema = z.object({
+  accountId: z.number().int().positive(),
+  buddyName: z.string().trim().min(1).max(60),
+  challengeTitle: z.string().trim().min(1).max(120).default("Stay under daily limit"),
 });
 
 export type SignupInput = z.infer<typeof signupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ProfilePatch = z.infer<typeof profilePatchSchema>;
+export type CreditEarnInput = z.infer<typeof creditEarnSchema>;
+export type CreditSpendInput = z.infer<typeof creditSpendSchema>;
+export type FocusPlanInput = z.infer<typeof focusPlanInputSchema>;
+export type DailyGoalCheckInInput = z.infer<typeof dailyGoalCheckInSchema>;
+export type AccountabilityChallengeInput = z.infer<typeof accountabilityChallengeSchema>;
+export type CreditLedgerRow = typeof creditLedger.$inferSelect;
+export type FocusPlanRow = typeof focusPlans.$inferSelect;
+export type AccountabilityBuddyRow = typeof accountabilityBuddies.$inferSelect;
 
 export type SafeProfile = {
   onboardingComplete: boolean;
@@ -207,6 +319,14 @@ export type SafeProfile = {
   coins: number;
   streak: number;
   completedActions: string[];
+  latchCredits: number;
+  unlockMinutes: number;
+  brainEnergy: number;
+  dailyGoalMinutes: number;
+  lastGoalDay: string;
+  weeklyPoints: number;
+  emergencyPasses: number;
+  doomscrollNudges: boolean;
 };
 
 export type SafeAccount = {

@@ -1,8 +1,11 @@
 import {
   accountProfiles,
+  accountabilityBuddies,
   accounts,
   appEvents,
   blockRules,
+  creditLedger,
+  focusPlans,
   focusSessions,
   habitPatterns,
   profiles,
@@ -10,11 +13,18 @@ import {
   quests,
 } from '@shared/schema';
 import type {
+  AccountabilityBuddyRow,
+  AccountabilityChallengeInput,
   Account,
   AccountProfile,
   AppEvent,
   AppEventInput,
   BlockRule,
+  CreditEarnInput,
+  CreditLedgerRow,
+  CreditSpendInput,
+  FocusPlanInput,
+  FocusPlanRow,
   FocusSession,
   HabitPatternRow,
   InsertFocusSession,
@@ -30,7 +40,7 @@ import type {
 } from '@shared/schema';
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
-import { and, eq, gte } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 const dbPath = process.env.LATCH_DB_PATH ?? "data.db";
@@ -112,7 +122,70 @@ sqlite.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_block_rules_account
     ON block_rules(account_id);
+  CREATE TABLE IF NOT EXISTS credit_ledger (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    kind TEXT NOT NULL,
+    source TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    note TEXT NOT NULL DEFAULT '',
+    proof TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_credit_ledger_account
+    ON credit_ledger(account_id, created_at);
+  CREATE TABLE IF NOT EXISTS focus_plans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    title TEXT NOT NULL,
+    difficulty TEXT NOT NULL DEFAULT 'gentle',
+    start_minute INTEGER NOT NULL DEFAULT 540,
+    end_minute INTEGER NOT NULL DEFAULT 660,
+    days_mask INTEGER NOT NULL DEFAULT 31,
+    blocked_apps TEXT NOT NULL DEFAULT '[]',
+    break_policy TEXT NOT NULL DEFAULT 'none',
+    emergency_pass_count INTEGER NOT NULL DEFAULT 1,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_focus_plans_account
+    ON focus_plans(account_id);
+  CREATE TABLE IF NOT EXISTS accountability_buddies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    buddy_name TEXT NOT NULL,
+    challenge_title TEXT NOT NULL DEFAULT 'Stay under daily limit',
+    minutes_saved INTEGER NOT NULL DEFAULT 0,
+    points_this_week INTEGER NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_buddies_account
+    ON accountability_buddies(account_id);
 `);
+
+// Lightweight migration: older databases predate the new account_profiles
+// columns. Add any missing ones without touching existing rows.
+function ensureAccountProfileColumns() {
+  const rows = sqlite.prepare("PRAGMA table_info(account_profiles)").all() as Array<{ name: string }>;
+  const have = new Set(rows.map((r) => r.name));
+  const additions: Array<[string, string]> = [
+    ["latch_credits", "INTEGER NOT NULL DEFAULT 20"],
+    ["unlock_minutes", "INTEGER NOT NULL DEFAULT 0"],
+    ["brain_energy", "INTEGER NOT NULL DEFAULT 72"],
+    ["daily_goal_minutes", "INTEGER NOT NULL DEFAULT 120"],
+    ["last_goal_day", "TEXT NOT NULL DEFAULT ''"],
+    ["weekly_points", "INTEGER NOT NULL DEFAULT 0"],
+    ["emergency_passes", "INTEGER NOT NULL DEFAULT 2"],
+    ["doomscroll_nudges", "INTEGER NOT NULL DEFAULT 1"],
+  ];
+  for (const [col, def] of additions) {
+    if (!have.has(col)) {
+      sqlite.exec(`ALTER TABLE account_profiles ADD COLUMN ${col} ${def}`);
+    }
+  }
+}
+ensureAccountProfileColumns();
 
 export const db = drizzle(sqlite);
 
@@ -155,6 +228,14 @@ function toSafeProfile(row: AccountProfile): SafeProfile {
     coins: row.coins,
     streak: row.streak,
     completedActions: parseList(row.completedActions),
+    latchCredits: row.latchCredits ?? 20,
+    unlockMinutes: row.unlockMinutes ?? 0,
+    brainEnergy: row.brainEnergy ?? 72,
+    dailyGoalMinutes: row.dailyGoalMinutes ?? 120,
+    lastGoalDay: row.lastGoalDay ?? "",
+    weeklyPoints: row.weeklyPoints ?? 0,
+    emergencyPasses: row.emergencyPasses ?? 2,
+    doomscrollNudges: row.doomscrollNudges === undefined ? true : Boolean(row.doomscrollNudges),
   };
 }
 
@@ -222,6 +303,19 @@ export interface IStorage {
   }): Promise<BlockRule>;
   listActiveBlockRules(accountId: number, nowIso: string): Promise<BlockRule[]>;
   findBlockRuleByPattern(patternKey: string): Promise<BlockRule | undefined>;
+
+  earnCredits(input: CreditEarnInput): Promise<{ entry: CreditLedgerRow; account: SafeAccount }>;
+  spendCredits(input: CreditSpendInput): Promise<{ entry: CreditLedgerRow; account: SafeAccount } | { error: string }>;
+  listCreditLedger(accountId: number, limit?: number): Promise<CreditLedgerRow[]>;
+
+  listFocusPlans(accountId: number): Promise<FocusPlanRow[]>;
+  createFocusPlan(input: FocusPlanInput): Promise<FocusPlanRow>;
+  toggleFocusPlan(planId: number, enabled: boolean): Promise<FocusPlanRow | undefined>;
+  deleteFocusPlan(planId: number): Promise<boolean>;
+
+  listAccountabilityBuddies(accountId: number): Promise<AccountabilityBuddyRow[]>;
+  createAccountabilityBuddy(input: AccountabilityChallengeInput): Promise<AccountabilityBuddyRow>;
+  seedAccountabilityBuddiesIfEmpty(accountId: number): Promise<AccountabilityBuddyRow[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -305,6 +399,14 @@ export class DatabaseStorage implements IStorage {
         coins: 84,
         streak: 9,
         completedActions: "[]",
+        latchCredits: 20,
+        unlockMinutes: 0,
+        brainEnergy: 72,
+        dailyGoalMinutes: 120,
+        lastGoalDay: "",
+        weeklyPoints: 0,
+        emergencyPasses: 2,
+        doomscrollNudges: true,
         updatedAt: now,
       })
       .returning()
@@ -364,6 +466,14 @@ export class DatabaseStorage implements IStorage {
     if (patch.completedActions !== undefined) {
       update.completedActions = JSON.stringify(patch.completedActions);
     }
+    if (patch.latchCredits !== undefined) update.latchCredits = patch.latchCredits;
+    if (patch.unlockMinutes !== undefined) update.unlockMinutes = patch.unlockMinutes;
+    if (patch.brainEnergy !== undefined) update.brainEnergy = patch.brainEnergy;
+    if (patch.dailyGoalMinutes !== undefined) update.dailyGoalMinutes = patch.dailyGoalMinutes;
+    if (patch.lastGoalDay !== undefined) update.lastGoalDay = patch.lastGoalDay;
+    if (patch.weeklyPoints !== undefined) update.weeklyPoints = patch.weeklyPoints;
+    if (patch.emergencyPasses !== undefined) update.emergencyPasses = patch.emergencyPasses;
+    if (patch.doomscrollNudges !== undefined) update.doomscrollNudges = patch.doomscrollNudges;
 
     db.update(accountProfiles).set(update).where(eq(accountProfiles.accountId, accountId)).run();
     return this.getAccountProfile(accountId);
@@ -563,6 +673,194 @@ export class DatabaseStorage implements IStorage {
       .from(blockRules)
       .where(eq(blockRules.sourcePatternKey, patternKey))
       .get();
+  }
+
+  async earnCredits(input: CreditEarnInput): Promise<{ entry: CreditLedgerRow; account: SafeAccount }> {
+    const existing = db
+      .select()
+      .from(accountProfiles)
+      .where(eq(accountProfiles.accountId, input.accountId))
+      .get();
+    if (!existing) {
+      const err = new Error("Account not found.");
+      (err as any).code = "ACCOUNT_NOT_FOUND";
+      throw err;
+    }
+    const now = new Date().toISOString();
+    const entry = db
+      .insert(creditLedger)
+      .values({
+        accountId: input.accountId,
+        kind: "earn",
+        source: input.source,
+        amount: input.amount,
+        note: input.note ?? "",
+        proof: input.proof ?? "",
+        createdAt: now,
+      })
+      .returning()
+      .get();
+    const newCredits = (existing.latchCredits ?? 20) + input.amount;
+    // Boost brain energy a little when offline action is logged.
+    const energyDelta = input.source === "focus_complete" ? 4 : input.source === "shield_skip" ? 3 : 6;
+    const newEnergy = Math.min(100, (existing.brainEnergy ?? 72) + energyDelta);
+    const newWeekly = (existing.weeklyPoints ?? 0) + Math.round(input.amount / 2);
+    db.update(accountProfiles)
+      .set({
+        latchCredits: newCredits,
+        brainEnergy: newEnergy,
+        weeklyPoints: newWeekly,
+        updatedAt: now,
+      })
+      .where(eq(accountProfiles.accountId, input.accountId))
+      .run();
+    const account = await this.getAccountProfile(input.accountId);
+    if (!account) throw new Error("Account not found after update.");
+    return { entry, account };
+  }
+
+  async spendCredits(input: CreditSpendInput): Promise<{ entry: CreditLedgerRow; account: SafeAccount } | { error: string }> {
+    const existing = db
+      .select()
+      .from(accountProfiles)
+      .where(eq(accountProfiles.accountId, input.accountId))
+      .get();
+    if (!existing) return { error: "Account not found." };
+    const cost = input.minutes * 2; // 2 credits per minute
+    if ((existing.latchCredits ?? 0) < cost) {
+      return { error: `Not enough Latch Credits. ${cost} needed.` };
+    }
+    const now = new Date().toISOString();
+    const entry = db
+      .insert(creditLedger)
+      .values({
+        accountId: input.accountId,
+        kind: "spend",
+        source: input.appName ?? "unlock",
+        amount: -cost,
+        note: input.note ?? `Unlock ${input.minutes} minutes`,
+        proof: "",
+        createdAt: now,
+      })
+      .returning()
+      .get();
+    const newCredits = (existing.latchCredits ?? 0) - cost;
+    const newUnlock = (existing.unlockMinutes ?? 0) + input.minutes;
+    // Brain energy dips when user spends on screen time (small, friendly).
+    const newEnergy = Math.max(0, (existing.brainEnergy ?? 72) - Math.min(6, Math.ceil(input.minutes / 4)));
+    db.update(accountProfiles)
+      .set({
+        latchCredits: newCredits,
+        unlockMinutes: newUnlock,
+        brainEnergy: newEnergy,
+        updatedAt: now,
+      })
+      .where(eq(accountProfiles.accountId, input.accountId))
+      .run();
+    const account = await this.getAccountProfile(input.accountId);
+    if (!account) return { error: "Account not found after update." };
+    return { entry, account };
+  }
+
+  async listCreditLedger(accountId: number, limit = 30): Promise<CreditLedgerRow[]> {
+    return db
+      .select()
+      .from(creditLedger)
+      .where(eq(creditLedger.accountId, accountId))
+      .orderBy(desc(creditLedger.id))
+      .limit(limit)
+      .all();
+  }
+
+  async listFocusPlans(accountId: number): Promise<FocusPlanRow[]> {
+    return db
+      .select()
+      .from(focusPlans)
+      .where(eq(focusPlans.accountId, accountId))
+      .all();
+  }
+
+  async createFocusPlan(input: FocusPlanInput): Promise<FocusPlanRow> {
+    const now = new Date().toISOString();
+    return db
+      .insert(focusPlans)
+      .values({
+        accountId: input.accountId,
+        title: input.title,
+        difficulty: input.difficulty,
+        startMinute: input.startMinute,
+        endMinute: input.endMinute,
+        daysMask: input.daysMask,
+        blockedApps: JSON.stringify(input.blockedApps),
+        breakPolicy: input.breakPolicy,
+        emergencyPassCount: input.emergencyPassCount,
+        enabled: input.enabled,
+        createdAt: now,
+      })
+      .returning()
+      .get();
+  }
+
+  async toggleFocusPlan(planId: number, enabled: boolean): Promise<FocusPlanRow | undefined> {
+    db.update(focusPlans).set({ enabled }).where(eq(focusPlans.id, planId)).run();
+    return db.select().from(focusPlans).where(eq(focusPlans.id, planId)).get();
+  }
+
+  async deleteFocusPlan(planId: number): Promise<boolean> {
+    const existing = db.select().from(focusPlans).where(eq(focusPlans.id, planId)).get();
+    if (!existing) return false;
+    db.delete(focusPlans).where(eq(focusPlans.id, planId)).run();
+    return true;
+  }
+
+  async listAccountabilityBuddies(accountId: number): Promise<AccountabilityBuddyRow[]> {
+    return db
+      .select()
+      .from(accountabilityBuddies)
+      .where(eq(accountabilityBuddies.accountId, accountId))
+      .all();
+  }
+
+  async createAccountabilityBuddy(input: AccountabilityChallengeInput): Promise<AccountabilityBuddyRow> {
+    const now = new Date().toISOString();
+    return db
+      .insert(accountabilityBuddies)
+      .values({
+        accountId: input.accountId,
+        buddyName: input.buddyName,
+        challengeTitle: input.challengeTitle,
+        minutesSaved: 0,
+        pointsThisWeek: 0,
+        active: true,
+        createdAt: now,
+      })
+      .returning()
+      .get();
+  }
+
+  async seedAccountabilityBuddiesIfEmpty(accountId: number): Promise<AccountabilityBuddyRow[]> {
+    const existing = await this.listAccountabilityBuddies(accountId);
+    if (existing.length > 0) return existing;
+    const now = new Date().toISOString();
+    const seeds = [
+      { name: "Maya", title: "Two focus rounds a day", minutes: 151, points: 27 },
+      { name: "Jay", title: "Phone away by 10 pm", minutes: 133, points: 19 },
+      { name: "Noah", title: "Walk before scroll", minutes: 98, points: 12 },
+    ];
+    for (const seed of seeds) {
+      db.insert(accountabilityBuddies)
+        .values({
+          accountId,
+          buddyName: seed.name,
+          challengeTitle: seed.title,
+          minutesSaved: seed.minutes,
+          pointsThisWeek: seed.points,
+          active: true,
+          createdAt: now,
+        })
+        .run();
+    }
+    return this.listAccountabilityBuddies(accountId);
   }
 }
 
