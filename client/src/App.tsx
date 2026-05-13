@@ -317,14 +317,31 @@ function Onboarding({
   const progress = ((step + 1) / 7) * 100;
   const savedHours = Math.max(0, profile.currentHours - profile.goalHours);
 
+  const firstName = profile.name.trim().split(" ")[0];
   const mascotMessages = [
-    `Hi, I’m Lumi. I’ll help you make your phone less sticky.`,
-    "First, I’ll show you the trick apps use: they make the next swipe feel exciting.",
-    "Now tell me your real number. No judging. We just need a starting point.",
-    "This chart shows how small daily numbers become huge over time.",
-    "Your feelings matter. Latch changes based on why you scroll.",
-    "A real mobile app would ask Apple for Screen Time access and notification permission here.",
-    `${profile.name || "You"} are ready. I made your first plan simple.`,
+    profile.name.trim().length > 0
+      ? `Awesome — nice to meet you, ${firstName}. Add your age and we’ll keep moving.`
+      : `Hi, I’m Lumi. Tell me your name so I can cheer you on by name.`,
+    "Quick lesson time! Apps use design tricks. Once you see them, they lose half their power.",
+    profile.currentHours > profile.goalHours
+      ? `You want to save ${formatHours(profile.currentHours - profile.goalHours)} a day. That’s a real win — I’ll help.`
+      : "Slide the bars to your real numbers. No judging — we just need a starting point.",
+    `Look at this: small daily hours add up to ${((profile.currentHours * 365) / 24).toFixed(0)} days a year. Wild, right?`,
+    profile.feelings.length > 0
+      ? `Got it — I’ll plan around feeling ${profile.feelings[0].toLowerCase()}. Your reasons shape your rewards.`
+      : "Tell me how scrolling leaves you feeling. Your reasons shape your rewards.",
+    "Almost there. On a real phone I’d ask Apple for permission here — for the demo we’ll just turn them on.",
+    `🎉 ${firstName || "You"} are ready! Your plan is saved and your first credits are waiting.`,
+  ];
+
+  const stepInsights = [
+    "I’ll greet you by name and tune my voice for your age. Nothing leaves your device beyond your account.",
+    "When you spot a design trick, your brain treats it like a puzzle — not a pull. That alone slows the scroll.",
+    "Naming your real number breaks the autopilot. The first honest answer is the hardest one.",
+    "Tiny daily numbers turn into giant year numbers. We’ll trade a slice of that back to real life.",
+    "Feelings predict scrolling more than apps do. We’ll match shields to the feelings you flagged.",
+    "Permissions are how I learn when to nudge. In a real phone, this is the only place I ask.",
+    "Your starter plan is built from your answers. You can change it any time inside the app.",
   ];
 
   function toggleArray(field: "feelings" | "topApps", value: string) {
@@ -383,7 +400,17 @@ function Onboarding({
 
       <section className="mx-auto grid max-w-6xl gap-6 px-4 pb-8 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:px-8">
         <aside className="rounded-[2rem] border border-border/70 bg-card/88 p-5 shadow-sm backdrop-blur" data-testid="panel-onboarding-mascot">
-          <Mascot mood={step === 6 ? "celebrate" : step === 5 ? "coach" : "happy"} message={mascotMessages[step]} />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.22 }}
+            >
+              <Mascot mood={step === 6 ? "celebrate" : step === 5 ? "coach" : "happy"} message={mascotMessages[step]} />
+            </motion.div>
+          </AnimatePresence>
           <div className="mt-6">
             <div className="flex items-center justify-between text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
               <span>setup</span>
@@ -391,11 +418,20 @@ function Onboarding({
             </div>
             <Progress value={progress} className="mt-3 h-3" data-testid="progress-onboarding" />
           </div>
-          <div className="mt-6 rounded-2xl bg-background p-4">
-            <p className="text-sm font-bold">What Latch is doing</p>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              We learn your habits, then turn scrolling into a choice. The goal is not “never use your phone.” The goal is “you control it.”
-            </p>
+          <div className="mt-6 rounded-2xl bg-background p-4" data-testid="panel-step-insight">
+            <p className="text-sm font-bold">Why this question matters</p>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={step}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.22 }}
+                className="mt-2 text-sm leading-6 text-muted-foreground"
+              >
+                {stepInsights[step]}
+              </motion.p>
+            </AnimatePresence>
           </div>
         </aside>
 
