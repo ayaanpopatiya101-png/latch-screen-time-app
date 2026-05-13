@@ -35,6 +35,8 @@ export const accountProfiles = sqliteTable("account_profiles", {
   weeklyPoints: integer("weekly_points").notNull().default(0),
   emergencyPasses: integer("emergency_passes").notNull().default(2),
   doomscrollNudges: integer("doomscroll_nudges", { mode: "boolean" }).notNull().default(true),
+  interview: text("interview").notNull().default("{}"),
+  planPower: integer("plan_power").notNull().default(0),
   updatedAt: text("updated_at").notNull(),
 });
 
@@ -240,6 +242,8 @@ export const profilePatchSchema = z.object({
   weeklyPoints: z.number().int().optional(),
   emergencyPasses: z.number().int().min(0).max(10).optional(),
   doomscrollNudges: z.boolean().optional(),
+  interview: z.record(z.unknown()).optional(),
+  planPower: z.number().int().min(0).max(100).optional(),
 });
 
 export const creditEarnSchema = z.object({
@@ -327,6 +331,8 @@ export type SafeProfile = {
   weeklyPoints: number;
   emergencyPasses: number;
   doomscrollNudges: boolean;
+  interview: Record<string, unknown>;
+  planPower: number;
 };
 
 export type SafeAccount = {

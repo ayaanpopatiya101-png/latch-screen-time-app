@@ -20,6 +20,8 @@ export type SafeProfile = {
   weeklyPoints: number;
   emergencyPasses: number;
   doomscrollNudges: boolean;
+  interview: Record<string, unknown>;
+  planPower: number;
 };
 
 export type SafeAccount = {

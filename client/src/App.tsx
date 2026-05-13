@@ -54,6 +54,12 @@ import { AccountabilityLeaderboard } from "@/components/AccountabilityLeaderboar
 import { DoomscrollNudges } from "@/components/DoomscrollNudges";
 import { DailyReportCard } from "@/components/DailyReportCard";
 import { logout as apiLogout, patchProfile, type SafeAccount } from "@/lib/auth";
+import { LumiInterview } from "@/components/LumiInterview";
+import {
+  type EngineState,
+  type InterviewProfile,
+  summarize as summarizeInterview,
+} from "@/lib/questionEngine";
 
 type Mode = "soft" | "focus" | "hard";
 type OnboardingStep = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -842,6 +848,7 @@ function Home() {
   );
   const [account, setAccount] = useState<SafeAccount | null>(null);
   const [onboarded, setOnboarded] = useState(false);
+  const [useClassicOnboarding, setUseClassicOnboarding] = useState(false);
   const [profile, setProfile] = useState<OnboardingData>(defaultProfile);
   const [selectedApp, setSelectedApp] = useState<AppRule>(appRules[0]);
   const [shieldOpen, setShieldOpen] = useState(false);
@@ -1126,6 +1133,7 @@ function Home() {
     setStreak(saved.streak);
     setCompletedActions(saved.completedActions);
     setOnboarded(saved.onboardingComplete);
+    setUseClassicOnboarding(false);
   }
 
   async function handleLogout() {
@@ -1186,12 +1194,115 @@ function Home() {
     }
   }
 
+  function finishInterview(state: EngineState) {
+    const interviewProfile = state.profile;
+    const merged: OnboardingData = {
+      name: interviewProfile.name ?? profile.name ?? "",
+      age: interviewProfile.age ?? profile.age ?? "",
+      currentHours: interviewProfile.currentHours ?? profile.currentHours,
+      goalHours: interviewProfile.goalHours ?? profile.goalHours,
+      feelings: interviewProfile.feelings ?? profile.feelings,
+      hardestTime: interviewProfile.hardestTime ?? profile.hardestTime,
+      topApps:
+        interviewProfile.topApps && interviewProfile.topApps.length > 0
+          ? interviewProfile.topApps
+          : profile.topApps,
+      appleConnected: profile.appleConnected,
+      notificationsAllowed: profile.notificationsAllowed,
+    };
+    setProfile(merged);
+    setOnboarded(true);
+    setUseClassicOnboarding(false);
+    const summary = summarizeInterview(state);
+    const persisted: Partial<SafeAccount["profile"]> = {
+      onboardingComplete: true,
+      name: merged.name,
+      age: merged.age,
+      currentHours: merged.currentHours,
+      goalHours: merged.goalHours,
+      feelings: merged.feelings,
+      hardestTime: merged.hardestTime,
+      topApps: merged.topApps,
+      interview: {
+        profile: interviewProfile as Record<string, unknown>,
+        answers: state.answers,
+        askedIds: state.askedIds,
+        summary,
+        completedAt: new Date().toISOString(),
+      },
+      planPower: summary.planPower,
+    };
+    // Apply difficulty + emergency pass + plan tuning from interview where it maps cleanly.
+    if (interviewProfile.emergencyPassPref === "no_pass") persisted.emergencyPasses = 0;
+    else if (interviewProfile.emergencyPassPref === "one_pass") persisted.emergencyPasses = 1;
+    else if (interviewProfile.emergencyPassPref === "two_passes") persisted.emergencyPasses = 2;
+    // Reward the first plan with credits + a streak nudge.
+    if (account) {
+      persisted.latchCredits = (account.profile.latchCredits ?? 20) + 10;
+      void patchProfile(account.id, persisted).then((updated) => {
+        setAccount(updated);
+        setCoins(updated.profile.coins);
+        setStreak(updated.profile.streak);
+        setCompletedActions(updated.profile.completedActions);
+      }).catch(() => {
+        // Persistence best-effort.
+      });
+    }
+  }
+
+  function buildInterviewSeed(): Partial<InterviewProfile> {
+    const stored = account?.profile.interview as {
+      profile?: Record<string, unknown>;
+    } | undefined;
+    const storedProfile = (stored?.profile as Partial<InterviewProfile>) ?? {};
+    return {
+      name: storedProfile.name ?? profile.name ?? account?.name,
+      age: storedProfile.age ?? profile.age ?? (account ? String(account.age) : undefined),
+      currentHours: storedProfile.currentHours ?? profile.currentHours,
+      goalHours: storedProfile.goalHours ?? profile.goalHours,
+      feelings: storedProfile.feelings ?? (profile.feelings.length > 0 ? profile.feelings : undefined),
+      hardestTime: storedProfile.hardestTime ?? (profile.hardestTime || undefined),
+      topApps: storedProfile.topApps ?? (profile.topApps.length > 0 ? profile.topApps : undefined),
+      whyScroll: storedProfile.whyScroll,
+      bedtimeScroll: storedProfile.bedtimeScroll,
+      schoolFocus: storedProfile.schoolFocus,
+      notificationTriggers: storedProfile.notificationTriggers,
+      videoAppDepth: storedProfile.videoAppDepth,
+      socialPressure: storedProfile.socialPressure,
+      stressLevel: storedProfile.stressLevel,
+      gamingDepth: storedProfile.gamingDepth,
+      replacementHabits: storedProfile.replacementHabits,
+      motivationStyle: storedProfile.motivationStyle,
+      accountabilityPref: storedProfile.accountabilityPref,
+      difficultyTolerance: storedProfile.difficultyTolerance,
+      emergencyPassPref: storedProfile.emergencyPassPref,
+      improvementGoal: storedProfile.improvementGoal,
+    };
+  }
+
   if (!account) {
     return <AccountGate onAuthed={handleAuthed} />;
   }
 
   if (!onboarded) {
-    return <Onboarding profile={profile} setProfile={setProfile} onFinish={finishOnboarding} theme={theme} setTheme={setTheme} />;
+    if (useClassicOnboarding) {
+      return <Onboarding profile={profile} setProfile={setProfile} onFinish={finishOnboarding} theme={theme} setTheme={setTheme} />;
+    }
+    return (
+      <LumiInterview
+        initialProfile={buildInterviewSeed()}
+        initialAnswers={
+          (account?.profile.interview as { answers?: Record<string, unknown> } | undefined)?.answers
+        }
+        onComplete={(state) => finishInterview(state)}
+        onSkipToClassic={() => setUseClassicOnboarding(true)}
+        introOverride={
+          account
+            ? `Welcome ${account.name.split(" ")[0]}! I'll ask a few smart questions. Honest answers grow your plan power — and unlock your first 10 Latch Credits.`
+            : undefined
+        }
+      />
+    );
   }
 
   return (
@@ -1227,8 +1338,16 @@ function Home() {
             <Button type="button" variant="outline" onClick={() => setLocation("/bridge")} data-testid="button-open-bridge-hero">
               Cross the bridge
             </Button>
-            <Button type="button" variant="secondary" onClick={() => setOnboarded(false)} data-testid="button-edit-onboarding">
-              Edit answers
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setUseClassicOnboarding(false);
+                setOnboarded(false);
+              }}
+              data-testid="button-edit-onboarding"
+            >
+              Talk to Lumi again
             </Button>
           </div>
           <div className="mt-8 grid gap-3 sm:grid-cols-3">

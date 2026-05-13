@@ -178,6 +178,8 @@ function ensureAccountProfileColumns() {
     ["weekly_points", "INTEGER NOT NULL DEFAULT 0"],
     ["emergency_passes", "INTEGER NOT NULL DEFAULT 2"],
     ["doomscroll_nudges", "INTEGER NOT NULL DEFAULT 1"],
+    ["interview", "TEXT NOT NULL DEFAULT '{}'"],
+    ["plan_power", "INTEGER NOT NULL DEFAULT 0"],
   ];
   for (const [col, def] of additions) {
     if (!have.has(col)) {
@@ -213,6 +215,18 @@ function parseList(raw: string): string[] {
   }
 }
 
+function parseInterview(raw: string | null | undefined): Record<string, unknown> {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
 function toSafeProfile(row: AccountProfile): SafeProfile {
   return {
     onboardingComplete: Boolean(row.onboardingComplete),
@@ -236,6 +250,8 @@ function toSafeProfile(row: AccountProfile): SafeProfile {
     weeklyPoints: row.weeklyPoints ?? 0,
     emergencyPasses: row.emergencyPasses ?? 2,
     doomscrollNudges: row.doomscrollNudges === undefined ? true : Boolean(row.doomscrollNudges),
+    interview: parseInterview((row as { interview?: string }).interview),
+    planPower: (row as { planPower?: number }).planPower ?? 0,
   };
 }
 
@@ -407,6 +423,8 @@ export class DatabaseStorage implements IStorage {
         weeklyPoints: 0,
         emergencyPasses: 2,
         doomscrollNudges: true,
+        interview: "{}",
+        planPower: 0,
         updatedAt: now,
       })
       .returning()
@@ -474,6 +492,12 @@ export class DatabaseStorage implements IStorage {
     if (patch.weeklyPoints !== undefined) update.weeklyPoints = patch.weeklyPoints;
     if (patch.emergencyPasses !== undefined) update.emergencyPasses = patch.emergencyPasses;
     if (patch.doomscrollNudges !== undefined) update.doomscrollNudges = patch.doomscrollNudges;
+    if (patch.interview !== undefined) {
+      (update as { interview?: string }).interview = JSON.stringify(patch.interview ?? {});
+    }
+    if (patch.planPower !== undefined) {
+      (update as { planPower?: number }).planPower = patch.planPower;
+    }
 
     db.update(accountProfiles).set(update).where(eq(accountProfiles.accountId, accountId)).run();
     return this.getAccountProfile(accountId);
