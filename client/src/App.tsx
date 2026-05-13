@@ -195,11 +195,13 @@ function formatHours(hours: number) {
 function Logo() {
   return (
     <div className="flex items-center gap-3" data-testid="brand-logo">
-      <svg aria-label="Latch logo" viewBox="0 0 48 48" className="h-10 w-10 text-lime-300" fill="none">
-        <path d="M15 26V15.5C15 10.25 19.25 6 24.5 6S34 10.25 34 15.5V26" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-        <path d="M11 23h26v13a7 7 0 0 1-7 7H18a7 7 0 0 1-7-7V23Z" fill="currentColor" />
-        <circle cx="24" cy="32" r="3" className="fill-background" />
-      </svg>
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl surface-night shadow-sm">
+        <svg aria-label="Latch logo" viewBox="0 0 48 48" className="h-7 w-7 text-lime-reward" fill="none">
+          <path d="M15 26V15.5C15 10.25 19.25 6 24.5 6S34 10.25 34 15.5V26" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+          <path d="M11 23h26v13a7 7 0 0 1-7 7H18a7 7 0 0 1-7-7V23Z" fill="currentColor" />
+          <circle cx="24" cy="32" r="3" fill="#1b1828" />
+        </svg>
+      </div>
       <div>
         <p className="font-display text-lg font-extrabold leading-none tracking-tight">Latch</p>
         <p className="text-xs font-medium text-muted-foreground">Hooked on real life</p>
@@ -363,7 +365,7 @@ function Onboarding({
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_10%_15%,hsl(var(--chart-4)/0.24),transparent_22%),radial-gradient(circle_at_90%_25%,hsl(var(--primary)/0.22),transparent_26%),linear-gradient(135deg,hsl(var(--background)),hsl(var(--secondary)/0.65))]" />
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_10%_15%,hsl(var(--latch-yellow)/0.32),transparent_24%),radial-gradient(circle_at_90%_25%,hsl(var(--latch-lime)/0.26),transparent_28%),radial-gradient(circle_at_50%_95%,hsl(var(--latch-purple)/0.18),transparent_30%),linear-gradient(135deg,hsl(var(--background)),hsl(var(--latch-cream-soft)))]" />
       <div className="pointer-events-none fixed inset-x-0 bottom-0 -z-10 hidden h-72 bg-[linear-gradient(90deg,hsl(var(--primary)/0.08)_1px,transparent_1px),linear-gradient(0deg,hsl(var(--primary)/0.08)_1px,transparent_1px)] bg-[size:42px_42px] lg:block" />
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6 lg:px-8">
         <Logo />
@@ -665,17 +667,41 @@ function Onboarding({
   );
 }
 
-function StatCard({ label, value, detail, icon: Icon }: { label: string; value: string; detail: string; icon: typeof AlarmClock }) {
+function StatCard({ label, value, detail, icon: Icon, accent }: { label: string; value: string; detail: string; icon: typeof AlarmClock; accent?: "reward" | "energy" | "streak" | "focus" }) {
+  const surface =
+    accent === "reward" ? "surface-lime"
+    : accent === "energy" ? "surface-yellow"
+    : accent === "streak" ? "surface-night text-cream"
+    : accent === "focus" ? "surface-purple"
+    : "bg-card text-card-foreground";
+  const labelTone =
+    accent === "reward" || accent === "energy"
+      ? "text-[hsl(var(--latch-night))]/70"
+      : accent === "streak" || accent === "focus"
+        ? "text-cream-muted"
+        : "text-muted-foreground";
+  const detailTone =
+    accent === "reward" || accent === "energy"
+      ? "text-[hsl(var(--latch-night))]/80"
+      : accent === "streak" || accent === "focus"
+        ? "text-cream-muted"
+        : "text-muted-foreground";
+  const iconTone =
+    accent === "streak" || accent === "focus"
+      ? "text-lime-reward"
+      : accent === "reward" || accent === "energy"
+        ? "text-[hsl(var(--latch-night))]"
+        : "text-primary";
   return (
-    <article className="rounded-2xl bg-card p-4 text-card-foreground shadow-sm" data-testid={`card-stat-${label.toLowerCase().replaceAll(" ", "-")}`}>
+    <article className={`rounded-2xl p-4 shadow-sm ${surface}`} data-testid={`card-stat-${label.toLowerCase().replaceAll(" ", "-")}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+          <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${labelTone}`}>{label}</p>
           <p className="mt-2 font-display text-xl font-extrabold tabular-nums">{value}</p>
         </div>
-        <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
+        <Icon className={`h-5 w-5 ${iconTone}`} aria-hidden="true" />
       </div>
-      <p className="mt-3 text-sm text-muted-foreground">{detail}</p>
+      <p className={`mt-3 text-sm ${detailTone}`}>{detail}</p>
     </article>
   );
 }
@@ -1134,7 +1160,7 @@ function Home() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.16),transparent_34%),radial-gradient(circle_at_80%_20%,hsl(var(--chart-4)/0.18),transparent_24%)]" />
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,hsl(var(--latch-lime)/0.22),transparent_36%),radial-gradient(circle_at_80%_18%,hsl(var(--latch-yellow)/0.30),transparent_28%),radial-gradient(circle_at_70%_90%,hsl(var(--latch-purple)/0.18),transparent_30%)]" />
 
       <AppHeader theme={theme} setTheme={setTheme} account={account} onLogout={handleLogout} />
 
@@ -1191,9 +1217,9 @@ function Home() {
         <aside className="grid gap-4">
           <div className="grid grid-cols-2 gap-4">
             <StatCard label="Back today" value={formatHours(recoveredHours)} detail="Time you can win back" icon={AlarmClock} />
-            <StatCard label="Streak" value={`${streak} days`} detail="Goal days in a row" icon={Flame} />
-            <StatCard label="Credits" value={String(account.profile.latchCredits)} detail="Earned by real life" icon={Sparkles} />
-            <StatCard label="Brain energy" value={`${account.profile.brainEnergy}%`} detail="Lumi's health meter" icon={Brain} />
+            <StatCard label="Streak" value={`${streak} days`} detail="Goal days in a row" icon={Flame} accent="streak" />
+            <StatCard label="Credits" value={String(account.profile.latchCredits)} detail="Earned by real life" icon={Sparkles} accent="reward" />
+            <StatCard label="Brain energy" value={`${account.profile.brainEnergy}%`} detail="Lumi's health meter" icon={Brain} accent="energy" />
           </div>
           <div className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="panel-screen-time">
             <div className="flex items-center justify-between gap-3">
@@ -1554,12 +1580,12 @@ function Home() {
 
           <AnimatePresence mode="wait">
             {shieldOpen ? (
-              <motion.div key={shieldStep} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="mt-6 rounded-[1.5rem] bg-background p-5" data-testid="panel-shield-flow">
+              <motion.div key={shieldStep} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="mt-6 rounded-[1.5rem] surface-night p-5 shadow-[0_8px_24px_-12px_rgba(27,24,40,0.55)]" data-testid="panel-shield-flow">
                 {shieldStep === "pause" && (
                   <div>
                     <div className="flex items-center justify-between gap-3">
                       <Mascot compact mood="coach" message="Pause. Ask: do I really want this, or is it just habit?" />
-                      <span className="font-mono text-xl font-black tabular-nums" data-testid="text-shield-countdown">{countdown}s</span>
+                      <span className="font-mono text-xl font-black tabular-nums text-lime-reward" data-testid="text-shield-countdown">{countdown}s</span>
                     </div>
                     <Progress className="mt-5 h-3" value={shieldProgress} data-testid="progress-shield-countdown" />
                   </div>
@@ -1567,8 +1593,8 @@ function Home() {
 
                 {shieldStep === "choice" && (
                   <div>
-                    <p className="text-sm font-bold">Still want {selectedApp.name}?</p>
-                    <p className="mt-2 text-sm text-muted-foreground">Choose on purpose. No autopilot.</p>
+                    <p className="text-sm font-bold text-cream">Still want {selectedApp.name}?</p>
+                    <p className="mt-2 text-sm text-cream-muted">Choose on purpose. No autopilot.</p>
                     <div className="mt-5 grid gap-3 sm:grid-cols-2">
                       <Button type="button" onClick={skipApp} data-testid="button-skip-app">Stay off, earn coins</Button>
                       <Button type="button" variant="outline" onClick={buySession} data-testid="button-buy-session">Spend 10 coins</Button>
@@ -1578,10 +1604,10 @@ function Home() {
 
                 {shieldStep === "math" && (
                   <div>
-                    <p className="text-sm font-bold">Tiny brain check</p>
-                    <label htmlFor="math-answer" className="mt-2 block text-sm text-muted-foreground">What is 7 + 6?</label>
+                    <p className="text-sm font-bold text-cream">Tiny brain check</p>
+                    <label htmlFor="math-answer" className="mt-2 block text-sm text-cream-muted">What is 7 + 6?</label>
                     <div className="mt-4 flex flex-wrap gap-3">
-                      <input id="math-answer" value={mathAnswer} onChange={(event) => setMathAnswer(event.target.value)} className="min-h-10 rounded-xl border border-input bg-background px-3 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring" data-testid="input-math-answer" />
+                      <input id="math-answer" value={mathAnswer} onChange={(event) => setMathAnswer(event.target.value)} className="min-h-10 rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring" data-testid="input-math-answer" />
                       <Button type="button" onClick={submitMath} data-testid="button-submit-math">Unlock</Button>
                     </div>
                   </div>
@@ -1589,10 +1615,10 @@ function Home() {
 
                 {shieldStep === "unlocked" && (
                   <div className="flex items-start gap-3">
-                    <BadgeCheck className="mt-0.5 h-5 w-5 text-primary" aria-hidden="true" />
+                    <BadgeCheck className="mt-0.5 h-5 w-5 text-lime-reward" aria-hidden="true" />
                     <div>
-                      <p className="text-sm font-bold" data-testid="text-unlocked-session">{selectedApp.name} unlocked for {selectedApp.limit} minutes.</p>
-                      <p className="mt-1 text-sm text-muted-foreground">Lumi will close it when time is up.</p>
+                      <p className="text-sm font-bold text-cream" data-testid="text-unlocked-session">{selectedApp.name} unlocked for {selectedApp.limit} minutes.</p>
+                      <p className="mt-1 text-sm text-cream-muted">Lumi will close it when time is up.</p>
                     </div>
                   </div>
                 )}
@@ -1639,19 +1665,19 @@ function Home() {
             </div>
             <Button type="button" onClick={startFocus} disabled={focusActive} data-testid="button-start-focus-panel">{focusActive ? "Running" : "Start 25 min"}</Button>
           </div>
-          <div className="mt-6 rounded-[1.5rem] bg-background p-5">
+          <div className={`mt-6 rounded-[1.5rem] p-5 ${focusActive ? "surface-purple shadow-[0_8px_24px_-12px_rgba(122,77,255,0.55)]" : "bg-background"}`}>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-bold">Study sprint</p>
-                <p className="text-sm text-muted-foreground">Demo completes in 15 seconds.</p>
+                <p className={`text-sm font-bold ${focusActive ? "text-cream" : ""}`}>Study sprint</p>
+                <p className={`text-sm ${focusActive ? "text-cream-muted" : "text-muted-foreground"}`}>Demo completes in 15 seconds.</p>
               </div>
-              <span className="font-mono text-xl font-black tabular-nums" data-testid="text-focus-timer">{focusActive ? `00:${String(focusSeconds).padStart(2, "0")}` : "25:00"}</span>
+              <span className={`font-mono text-xl font-black tabular-nums ${focusActive ? "text-lime-reward" : ""}`} data-testid="text-focus-timer">{focusActive ? `00:${String(focusSeconds).padStart(2, "0")}` : "25:00"}</span>
             </div>
             <Progress className="mt-5 h-3" value={focusProgress} data-testid="progress-focus-session" />
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl bg-secondary p-3"><p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">reward</p><p className="mt-1 font-mono text-lg font-black">+22</p></div>
-              <div className="rounded-2xl bg-secondary p-3"><p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">blocked</p><p className="mt-1 font-mono text-lg font-black">4 apps</p></div>
-              <div className="rounded-2xl bg-secondary p-3"><p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">crew</p><p className="mt-1 font-mono text-lg font-black">{crewLive ? "live" : "ready"}</p></div>
+              <div className={`rounded-2xl p-3 ${focusActive ? "surface-lime" : "bg-secondary"}`}><p className={`text-xs font-bold uppercase tracking-[0.16em] ${focusActive ? "text-[hsl(var(--latch-night))]/70" : "text-muted-foreground"}`}>reward</p><p className="mt-1 font-mono text-lg font-black">+22</p></div>
+              <div className={`rounded-2xl p-3 ${focusActive ? "bg-[hsl(var(--latch-night))] text-cream" : "bg-secondary"}`}><p className={`text-xs font-bold uppercase tracking-[0.16em] ${focusActive ? "text-cream-muted" : "text-muted-foreground"}`}>blocked</p><p className="mt-1 font-mono text-lg font-black">4 apps</p></div>
+              <div className={`rounded-2xl p-3 ${focusActive ? "surface-yellow" : "bg-secondary"}`}><p className={`text-xs font-bold uppercase tracking-[0.16em] ${focusActive ? "text-[hsl(var(--latch-night))]/70" : "text-muted-foreground"}`}>crew</p><p className="mt-1 font-mono text-lg font-black">{crewLive ? "live" : "ready"}</p></div>
             </div>
           </div>
         </article>

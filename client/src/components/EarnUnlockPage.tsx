@@ -167,7 +167,7 @@ export function EarnUnlockPage({
   const credits = account.profile.latchCredits;
   const unlockMinutes = account.profile.unlockMinutes;
   const energy = account.profile.brainEnergy;
-  const energyColor = energy >= 70 ? "text-primary" : energy >= 40 ? "text-amber-500" : "text-rose-500";
+  const energyColor = energy >= 70 ? "text-green-reward" : energy >= 40 ? "text-yellow-energy" : "text-rose-500";
   const energyLabel = energy >= 70 ? "Charged" : energy >= 40 ? "Recovering" : "Drained";
 
   const todayEarned = report?.earnedToday ?? 0;
@@ -193,27 +193,27 @@ export function EarnUnlockPage({
             </p>
           </div>
           <div className="grid gap-2 text-right">
-            <div className="rounded-2xl bg-primary px-4 py-3 text-primary-foreground" data-testid="card-latch-credits">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em]">credits</p>
+            <div className="rounded-2xl surface-lime px-4 py-3 shadow-sm" data-testid="card-latch-credits">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[hsl(var(--latch-night))]/70">credits</p>
               <p className="font-display text-2xl font-black tabular-nums">{credits}</p>
             </div>
-            <div className="rounded-2xl bg-secondary px-4 py-2 text-secondary-foreground" data-testid="card-unlock-minutes">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em]">banked unlock</p>
+            <div className="rounded-2xl surface-purple px-4 py-2 shadow-sm" data-testid="card-unlock-minutes">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cream-muted">banked unlock</p>
               <p className="font-mono text-lg font-black tabular-nums">{unlockMinutes} min</p>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 rounded-[1.5rem] bg-background p-5" data-testid="card-brain-energy">
+        <div className="mt-6 rounded-[1.5rem] surface-night p-5 shadow-sm" data-testid="card-brain-energy">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Zap className={`h-5 w-5 ${energyColor}`} aria-hidden="true" />
-              <p className="font-bold">Brain energy</p>
+              <p className="font-bold text-cream">Brain energy</p>
             </div>
             <span className={`font-mono text-lg font-black tabular-nums ${energyColor}`} data-testid="text-brain-energy">{energy}%</span>
           </div>
           <Progress className="mt-3 h-3" value={energy} data-testid="progress-brain-energy" />
-          <p className="mt-3 text-xs text-muted-foreground">
+          <p className="mt-3 text-xs text-cream-muted">
             {energyLabel}. Offline actions charge you up. Long unlock spends drain you a little — by design.
           </p>
         </div>

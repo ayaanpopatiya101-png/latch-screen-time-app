@@ -46,7 +46,7 @@ export function AccountGate({ onAuthed }: { onAuthed: (account: SafeAccount) => 
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground" data-testid="screen-account-gate">
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_10%_15%,hsl(var(--chart-4)/0.24),transparent_22%),radial-gradient(circle_at_90%_25%,hsl(var(--primary)/0.22),transparent_26%),linear-gradient(135deg,hsl(var(--background)),hsl(var(--secondary)/0.65))]" />
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_10%_15%,hsl(var(--latch-yellow)/0.32),transparent_24%),radial-gradient(circle_at_90%_25%,hsl(var(--latch-lime)/0.26),transparent_28%),radial-gradient(circle_at_50%_95%,hsl(var(--latch-purple)/0.18),transparent_30%),linear-gradient(135deg,hsl(var(--background)),hsl(var(--latch-cream-soft)))]" />
       <section className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
         <header className="rounded-[2rem] border border-border/70 bg-card/88 p-6 shadow-sm backdrop-blur">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">welcome to latch</p>

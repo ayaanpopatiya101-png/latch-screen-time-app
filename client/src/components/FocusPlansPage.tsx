@@ -82,9 +82,9 @@ const presetPlans: PresetPlan[] = [
 const dayNames = ["S", "M", "T", "W", "T", "F", "S"];
 
 function difficultyTone(d: FocusPlan["difficulty"]): string {
-  if (d === "deep_lock") return "border-rose-500/40 bg-rose-500/10";
-  if (d === "friction") return "border-amber-500/40 bg-amber-500/10";
-  return "border-primary/40 bg-primary/10";
+  if (d === "deep_lock") return "border-purple-unlock surface-purple";
+  if (d === "friction") return "border-[hsl(var(--latch-yellow))]/60 bg-[hsl(var(--latch-yellow))]/35 text-foreground";
+  return "border-[hsl(var(--latch-lime))]/60 bg-[hsl(var(--latch-lime))]/30 text-foreground";
 }
 
 export function FocusPlansPage({ account, onToast }: { account: SafeAccount; onToast: (m: string) => void }) {
