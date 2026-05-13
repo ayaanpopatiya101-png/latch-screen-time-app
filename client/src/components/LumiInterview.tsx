@@ -263,18 +263,18 @@ export function LumiInterview({
 
   return (
     <main
-      className="min-h-screen overflow-hidden bg-background text-foreground"
+      className="min-h-screen overflow-hidden bg-mesh text-foreground"
       data-testid="screen-lumi-interview"
     >
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_10%_15%,hsl(var(--latch-yellow)/0.32),transparent_24%),radial-gradient(circle_at_90%_25%,hsl(var(--latch-lime)/0.26),transparent_28%),radial-gradient(circle_at_50%_95%,hsl(var(--latch-purple)/0.18),transparent_30%),linear-gradient(135deg,hsl(var(--background)),hsl(var(--latch-cream-soft)))]" />
+      <div className="pointer-events-none fixed inset-0 -z-10 opacity-70 mix-blend-overlay bg-[radial-gradient(circle_at_15%_15%,hsl(var(--latch-yellow)/0.45),transparent_28%),radial-gradient(circle_at_88%_18%,hsl(var(--latch-lime)/0.36),transparent_28%),radial-gradient(circle_at_50%_100%,hsl(var(--latch-purple)/0.30),transparent_36%)]" />
       <section className="mx-auto grid max-w-5xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
         <aside
-          className="rounded-[2rem] border border-border/70 bg-card/90 p-5 shadow-sm backdrop-blur lg:sticky lg:top-6 lg:self-start"
+          className="rounded-[2rem] card-premium p-5 backdrop-blur lg:sticky lg:top-6 lg:self-start"
           data-testid="panel-interview-progress"
         >
           <div className="flex items-start gap-3">
             <LumiAvatar mood={completed ? "celebrate" : "coach"} size="md" />
-            <div className="rounded-2xl bg-background p-3 text-sm font-medium leading-6 shadow-sm">
+            <div className="rounded-2xl panel-inset p-3 text-sm font-medium leading-6">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
                 lumi mission
               </p>
@@ -300,7 +300,7 @@ export function LumiInterview({
             </p>
           </div>
           <div className="mt-5 grid gap-3">
-            <div className="rounded-2xl bg-background p-3" data-testid="card-interview-stats">
+            <div className="rounded-2xl panel-inset p-3" data-testid="card-interview-stats">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
                 signals so far
               </p>
@@ -335,9 +335,9 @@ export function LumiInterview({
                 </p>
               )}
             </div>
-            <div className="rounded-2xl bg-background p-3">
+            <div className="rounded-2xl panel-inset p-3">
               <div className="flex items-center gap-2 text-sm font-bold">
-                <Trophy className="h-4 w-4 text-primary" aria-hidden="true" />
+                <Trophy className="h-4 w-4 text-[hsl(var(--latch-yellow))]" aria-hidden="true" />
                 Mission rewards
               </div>
               <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
@@ -347,7 +347,7 @@ export function LumiInterview({
               </ul>
             </div>
             {current?.why && (
-              <div className="rounded-2xl bg-secondary p-3 text-sm text-secondary-foreground" data-testid="text-question-why">
+              <div className="rounded-2xl border border-[hsl(var(--latch-purple))]/25 bg-[hsl(var(--latch-purple)/0.08)] p-3 text-sm text-foreground" data-testid="text-question-why">
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
                   why this matters
                 </p>
@@ -369,10 +369,10 @@ export function LumiInterview({
         </aside>
 
         <article
-          className="flex h-[78vh] min-h-[520px] flex-col rounded-[2rem] border border-border/70 bg-card/92 shadow-sm backdrop-blur"
+          className="flex h-[78vh] min-h-[520px] flex-col overflow-hidden rounded-[2rem] card-premium backdrop-blur"
           data-testid="panel-interview-chat"
         >
-          <header className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3">
+          <header className="flex items-center justify-between gap-3 border-b border-[hsl(var(--latch-night))]/8 bg-[hsl(var(--latch-cream-light))]/60 px-5 py-3 backdrop-blur">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
@@ -396,7 +396,7 @@ export function LumiInterview({
             </AnimatePresence>
           </div>
 
-          <footer className="border-t border-border/60 px-5 py-4">
+          <footer className="border-t border-[hsl(var(--latch-night))]/8 bg-[hsl(var(--latch-cream-light))]/60 px-5 py-4 backdrop-blur">
             {completed ? (
               <CompletedFooter onFinish={handleFinish} summary={summary} />
             ) : current ? (
@@ -433,7 +433,7 @@ function ChatBubble({ bubble }: { bubble: Bubble }) {
         className="mx-auto inline-flex w-full justify-center"
         data-testid="bubble-system"
       >
-        <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-black uppercase tracking-wider text-primary">
+        <span className="rounded-full border border-[hsl(var(--latch-lime))]/40 bg-[hsl(var(--latch-lime)/0.18)] px-3 py-1 text-xs font-black uppercase tracking-wider text-[hsl(var(--latch-lime-deep))]">
           ★ {bubble.text}
         </span>
       </motion.div>
@@ -448,7 +448,7 @@ function ChatBubble({ bubble }: { bubble: Bubble }) {
         className="flex justify-end"
         data-testid="bubble-user"
       >
-        <p className="max-w-[80%] rounded-2xl rounded-tr-sm bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm">
+        <p className="max-w-[80%] rounded-2xl rounded-tr-sm bg-[hsl(var(--latch-night))] px-4 py-2 text-sm font-medium text-[hsl(var(--latch-lime))] shadow-md">
           {bubble.text}
         </p>
       </motion.div>
@@ -465,7 +465,7 @@ function ChatBubble({ bubble }: { bubble: Bubble }) {
       <div className="mt-0.5">
         <LumiAvatar mood={bubble.mood ?? "happy"} size="sm" />
       </div>
-      <p className="max-w-[80%] rounded-2xl rounded-tl-sm bg-background px-4 py-2 text-sm font-medium leading-6 shadow-sm">
+      <p className="max-w-[80%] rounded-2xl rounded-tl-sm border border-card-border/60 bg-[hsl(var(--latch-cream-light))] px-4 py-2 text-sm font-medium leading-6 shadow-sm">
         {bubble.text}
       </p>
     </motion.div>
@@ -535,8 +535,8 @@ function AnswerControls({
               type="button"
               className={`rounded-xl border px-3 py-2 text-left text-sm font-bold transition hover-elevate active-elevate-2 ${
                 draftSingle === opt.value
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-foreground"
+                  ? "border-[hsl(var(--latch-night))] bg-[hsl(var(--latch-night))] text-[hsl(var(--latch-lime))] shadow-md"
+                  : "border-card-border/70 bg-[hsl(var(--latch-cream-light))] text-foreground"
               }`}
               onClick={() => setDraftSingle(opt.value)}
               data-testid={`option-${question.id}-${opt.value}`}
@@ -648,10 +648,10 @@ function CompletedFooter({
 }) {
   return (
     <div className="grid gap-3" data-testid="panel-interview-complete">
-      <div className="rounded-2xl bg-primary/15 p-4 text-sm leading-6">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">badge unlocked</p>
-        <p className="mt-1 font-bold">Plan Builder · {summary.persona.replaceAll("_", " ")}</p>
-        <p className="text-muted-foreground">
+      <div className="rounded-2xl surface-lime p-4 text-sm leading-6 glow-lime">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-[hsl(var(--latch-night))]/80">badge unlocked</p>
+        <p className="mt-1 font-black text-[hsl(var(--latch-night))]">Plan Builder · {summary.persona.replaceAll("_", " ")}</p>
+        <p className="text-[hsl(var(--latch-night))]/80">
           Shields will start on {summary.topShields.join(", ") || "your top apps"}. Your offline feed picks: {summary.recommendedReplacements.join(", ") || "walk, read, friend"}.
         </p>
       </div>

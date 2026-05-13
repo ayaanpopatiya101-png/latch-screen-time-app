@@ -61,14 +61,14 @@ export function DailyGoalCard({
   }
 
   return (
-    <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="card-daily-goal">
+    <article className="rounded-[2rem] card-premium p-5" data-testid="card-daily-goal">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">daily goal</p>
           <h2 className="mt-2 font-display text-lg font-extrabold tracking-tight">Stay under {goal} min today</h2>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-secondary-foreground" data-testid="badge-streak">
-          <Flame className="h-4 w-4" aria-hidden="true" />
+        <div className="flex items-center gap-2 rounded-full border border-[hsl(var(--latch-yellow))]/55 bg-[hsl(var(--latch-yellow)/0.25)] px-3 py-1 text-foreground shadow-[0_8px_18px_-12px_hsl(38_80%_38%/0.4)]" data-testid="badge-streak">
+          <Flame className="h-4 w-4 text-[hsl(var(--latch-yellow))]" aria-hidden="true" />
           <span className="text-sm font-black tabular-nums">{account.profile.streak} day streak</span>
         </div>
       </div>
@@ -88,7 +88,7 @@ export function DailyGoalCard({
           <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
           {checkedInToday ? "Checked in" : "Check in for today"}
         </Button>
-        <div className="rounded-2xl bg-background p-3 text-xs text-muted-foreground" data-testid="card-weekly-points">
+        <div className="rounded-2xl panel-inset p-3 text-xs text-muted-foreground" data-testid="card-weekly-points">
           <p className="flex items-center gap-2 font-bold text-foreground">
             <Target className="h-4 w-4 text-primary" aria-hidden="true" />
             Weekly points

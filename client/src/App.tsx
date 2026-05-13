@@ -201,8 +201,8 @@ function formatHours(hours: number) {
 function Logo() {
   return (
     <div className="flex items-center gap-3" data-testid="brand-logo">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl surface-night shadow-sm">
-        <svg aria-label="Latch logo" viewBox="0 0 48 48" className="h-7 w-7 text-lime-reward" fill="none">
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl surface-night glow-night">
+        <svg aria-label="Latch logo" viewBox="0 0 48 48" className="h-7 w-7 text-lime-reward drop-shadow-[0_0_6px_hsl(73_100%_60%/0.55)]" fill="none">
           <path d="M15 26V15.5C15 10.25 19.25 6 24.5 6S34 10.25 34 15.5V26" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
           <path d="M11 23h26v13a7 7 0 0 1-7 7H18a7 7 0 0 1-7-7V23Z" fill="currentColor" />
           <circle cx="24" cy="32" r="3" fill="#1b1828" />
@@ -243,7 +243,7 @@ function Mascot({ mood = "happy", message, compact = false }: { mood?: "happy" |
         <span className="absolute -right-1 top-1 rounded-full bg-background px-2 py-1 text-xs font-black shadow-sm">Lumi</span>
       </motion.div>
       {message && (
-        <div className="rounded-xl bg-card p-4 text-sm font-medium leading-6 shadow-sm" data-testid="mascot-message">
+        <div className="rounded-xl border border-card-border/60 bg-card p-4 text-sm font-medium leading-6 shadow-sm" data-testid="mascot-message">
           {message}
         </div>
       )}
@@ -424,7 +424,7 @@ function Onboarding({
             </div>
             <Progress value={progress} className="mt-3 h-3" data-testid="progress-onboarding" />
           </div>
-          <div className="mt-6 rounded-2xl bg-background p-4" data-testid="panel-step-insight">
+          <div className="mt-6 rounded-2xl panel-inset p-4" data-testid="panel-step-insight">
             <p className="text-sm font-bold">Why this question matters</p>
             <AnimatePresence mode="wait">
               <motion.p
@@ -484,13 +484,13 @@ function Onboarding({
                     ["Notifications", "A red dot or buzz says, “Something might be waiting.”"],
                     ["Personal feeds", "Apps learn what you pause on, then show more of it."],
                   ].map(([title, copy], index) => (
-                    <div key={title} className="rounded-2xl bg-background p-4" data-testid={`card-education-${index}`}>
+                    <div key={title} className="rounded-2xl panel-inset p-4" data-testid={`card-education-${index}`}>
                       <p className="font-bold">{title}</p>
                       <p className="mt-1 text-sm leading-6 text-muted-foreground">{copy}</p>
                     </div>
                   ))}
                 </div>
-                <p className="mt-5 rounded-2xl bg-secondary p-4 text-sm leading-6 text-secondary-foreground">
+                <p className="mt-5 rounded-2xl border border-[hsl(var(--latch-purple))]/25 bg-[hsl(var(--latch-purple)/0.08)] p-4 text-sm leading-6 text-foreground">
                   Simple version: the app is not “stronger” than you. It is designed to keep attention. Latch adds design in the other direction.
                 </p>
               </motion.div>
@@ -501,7 +501,7 @@ function Onboarding({
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">your numbers</p>
                 <h1 className="mt-3 font-display text-[2rem] font-extrabold leading-none tracking-tight">How much time do you spend?</h1>
                 <div className="mt-7 grid gap-5 sm:grid-cols-2">
-                  <label className="rounded-2xl bg-background p-5 text-sm font-bold">
+                  <label className="rounded-2xl panel-inset p-5 text-sm font-bold">
                     Current screen time
                     <span className="mt-3 block font-display text-xl font-black tabular-nums">{formatHours(profile.currentHours)} / day</span>
                     <input
@@ -515,7 +515,7 @@ function Onboarding({
                       data-testid="input-current-hours"
                     />
                   </label>
-                  <label className="rounded-2xl bg-background p-5 text-sm font-bold">
+                  <label className="rounded-2xl panel-inset p-5 text-sm font-bold">
                     Goal screen time
                     <span className="mt-3 block font-display text-xl font-black tabular-nums">{formatHours(profile.goalHours)} / day</span>
                     <input
@@ -543,10 +543,10 @@ function Onboarding({
                 <p className="mt-4 text-base leading-7 text-muted-foreground">
                   At {formatHours(profile.currentHours)} a day, your phone can take about {(profile.currentHours * 7).toFixed(0)} hours each week.
                 </p>
-                <div className="mt-7 rounded-2xl bg-background p-5">
+                <div className="mt-7 rounded-2xl panel-inset p-5">
                   <TinyBarChart currentHours={profile.currentHours} goalHours={profile.goalHours} />
                 </div>
-                <p className="mt-5 rounded-2xl bg-secondary p-4 text-sm leading-6 text-secondary-foreground">
+                <p className="mt-5 rounded-2xl border border-[hsl(var(--latch-purple))]/25 bg-[hsl(var(--latch-purple)/0.08)] p-4 text-sm leading-6 text-foreground">
                   Research often links heavy recreational screen use with less sleep, less movement, and feeling less rested. Latch focuses on swapping some scroll time for real-life time.
                 </p>
               </motion.div>
@@ -602,7 +602,7 @@ function Onboarding({
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">connect</p>
                 <h1 className="mt-3 font-display text-[2rem] font-extrabold leading-none tracking-tight">Connect your phone tools.</h1>
                 <div className="mt-7 grid gap-4">
-                  <div className="rounded-2xl bg-background p-5">
+                  <div className="rounded-2xl panel-inset p-5">
                     <div className="flex items-start gap-4">
                       <Smartphone className="mt-1 h-6 w-6 text-primary" aria-hidden="true" />
                       <div className="flex-1">
@@ -622,7 +622,7 @@ function Onboarding({
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-2xl bg-background p-5">
+                  <div className="rounded-2xl panel-inset p-5">
                     <div className="flex items-start gap-4">
                       <Bell className="mt-1 h-6 w-6 text-primary" aria-hidden="true" />
                       <div className="flex-1">
@@ -653,17 +653,17 @@ function Onboarding({
                 <h1 className="mt-3 font-display text-[2rem] font-extrabold leading-none tracking-tight">Ready, {profile.name || "friend"}.</h1>
                 <p className="mt-4 text-base leading-7 text-muted-foreground">I made Latch match your answers. You can change anything later.</p>
                 <div className="mt-7 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl bg-background p-4">
+                  <div className="rounded-2xl panel-inset p-4">
                     <p className="text-sm font-bold">Goal</p>
                     <p className="mt-2 font-display text-xl font-black">{formatHours(profile.goalHours)}</p>
                     <p className="mt-1 text-sm text-muted-foreground">per day</p>
                   </div>
-                  <div className="rounded-2xl bg-background p-4">
+                  <div className="rounded-2xl panel-inset p-4">
                     <p className="text-sm font-bold">Main shield</p>
                     <p className="mt-2 font-display text-xl font-black">{profile.topApps[0] || "Instagram"}</p>
                     <p className="mt-1 text-sm text-muted-foreground">highest pull</p>
                   </div>
-                  <div className="rounded-2xl bg-background p-4">
+                  <div className="rounded-2xl panel-inset p-4">
                     <p className="text-sm font-bold">Hard time</p>
                     <p className="mt-2 font-display text-xl font-black">{profile.hardestTime}</p>
                     <p className="mt-1 text-sm text-muted-foreground">extra nudge</p>
@@ -697,7 +697,7 @@ function Onboarding({
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 * index }}
-            className="rounded-[1.5rem] border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur"
+            className="rounded-[1.5rem] card-premium p-4 backdrop-blur"
             data-testid={`card-onboarding-preview-${index}`}
           >
             <p className="font-display text-xl font-black">{title}</p>
@@ -785,7 +785,7 @@ function AppHeader({
   const [location, setLocation] = useLocation();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/88 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[hsl(var(--latch-night))]/10 bg-[hsl(var(--latch-cream-light))]/82 backdrop-blur-xl supports-[backdrop-filter]:bg-[hsl(var(--latch-cream-light))]/72">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <button type="button" onClick={() => setLocation("/")} className="text-left" data-testid="button-home-logo">
           <Logo />
@@ -1312,9 +1312,9 @@ function Home() {
       <AppHeader theme={theme} setTheme={setTheme} account={account} onLogout={handleLogout} />
 
       {currentPage === "home" && <section className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-10">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="rounded-[2rem] bg-card p-5 shadow-sm sm:p-6">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="rounded-[2rem] card-premium p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full bg-primary px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-primary-foreground" data-testid="text-product-tagline">
+            <span className="chip-brand rounded-full px-3 py-1 text-xs font-black uppercase tracking-[0.18em]" data-testid="text-product-tagline">
               your phone coach
             </span>
             <span className="text-sm font-medium text-muted-foreground">Made for {profile.name || "you"}</span>
@@ -1351,18 +1351,18 @@ function Home() {
             </Button>
           </div>
           <div className="mt-8 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl bg-secondary p-4" data-testid="card-loop-friction">
-              <Brain className="h-5 w-5 text-primary" aria-hidden="true" />
+            <div className="rounded-2xl border border-[hsl(var(--latch-purple))]/25 bg-[hsl(var(--latch-purple))]/10 p-4" data-testid="card-loop-friction">
+              <Brain className="h-5 w-5 text-purple-unlock" aria-hidden="true" />
               <p className="mt-3 text-sm font-bold">Pause first</p>
               <p className="mt-1 text-sm text-muted-foreground">A short stop breaks autopilot.</p>
             </div>
-            <div className="rounded-2xl bg-secondary p-4" data-testid="card-loop-reward">
-              <Gift className="h-5 w-5 text-primary" aria-hidden="true" />
+            <div className="rounded-2xl border border-[hsl(var(--latch-lime))]/40 bg-[hsl(var(--latch-lime))]/15 p-4" data-testid="card-loop-reward">
+              <Gift className="h-5 w-5 text-lime-deep" aria-hidden="true" />
               <p className="mt-3 text-sm font-bold">Mystery rewards</p>
               <p className="mt-1 text-sm text-muted-foreground">Skipping can unlock surprise coins.</p>
             </div>
-            <div className="rounded-2xl bg-secondary p-4" data-testid="card-loop-social">
-              <Users className="h-5 w-5 text-primary" aria-hidden="true" />
+            <div className="rounded-2xl border border-[hsl(var(--latch-yellow))]/45 bg-[hsl(var(--latch-yellow))]/20 p-4" data-testid="card-loop-social">
+              <Users className="h-5 w-5 text-[hsl(var(--latch-yellow))]" aria-hidden="true" />
               <p className="mt-3 text-sm font-bold">Bring friends</p>
               <p className="mt-1 text-sm text-muted-foreground">Compete on time saved.</p>
             </div>
@@ -1376,7 +1376,7 @@ function Home() {
             <StatCard label="Credits" value={String(account.profile.latchCredits)} detail="Earned by real life" icon={Sparkles} accent="reward" />
             <StatCard label="Brain energy" value={`${account.profile.brainEnergy}%`} detail="Lumi's health meter" icon={Brain} accent="energy" />
           </div>
-          <div className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="panel-screen-time">
+          <div className="rounded-[2rem] card-premium p-5" data-testid="panel-screen-time">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-bold">Today’s screen budget</p>
@@ -1385,14 +1385,14 @@ function Home() {
               <span className="font-mono text-sm font-bold tabular-nums">{screenTimePercent.toFixed(0)}%</span>
             </div>
             <Progress className="mt-4 h-3" value={screenTimePercent} data-testid="progress-screen-time" />
-            <div className="mt-4 rounded-2xl bg-secondary p-3 text-sm text-secondary-foreground" data-testid="text-toast-status">
+            <div className="mt-4 rounded-2xl border border-[hsl(var(--latch-night))]/8 bg-[hsl(var(--latch-cream-light))] p-3 text-sm text-foreground shadow-[inset_0_1px_0_hsl(46_100%_96%/0.6)]" data-testid="text-toast-status">
               <Mascot compact mood="coach" message={toast} />
             </div>
             {surpriseReward && (
               <motion.div
                 initial={{ scale: 0.96, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="mt-3 rounded-2xl border border-primary/30 bg-primary p-3 text-primary-foreground"
+                className="mt-3 rounded-2xl surface-lime p-3 glow-lime"
                 data-testid="card-surprise-reward"
               >
                 <div className="flex items-center gap-2">
@@ -1406,7 +1406,7 @@ function Home() {
       </section>}
 
       {currentPage === "home" && <section className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-personal-plan">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-personal-plan">
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">your setup</p>
@@ -1422,12 +1422,12 @@ function Home() {
               </p>
               {plan && (
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl bg-background p-3" data-testid="card-risk-tier">
+                  <div className="rounded-2xl panel-inset p-3" data-testid="card-risk-tier">
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">risk tier</p>
                     <p className="mt-1 font-display text-lg font-black capitalize">{plan.riskTier}</p>
                     <p className="text-xs text-muted-foreground">score {plan.riskScore}/100</p>
                   </div>
-                  <div className="rounded-2xl bg-background p-3" data-testid="card-weekly-forecast">
+                  <div className="rounded-2xl panel-inset p-3" data-testid="card-weekly-forecast">
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">weekly forecast</p>
                     <p className="mt-1 font-display text-lg font-black tabular-nums">
                       {plan.weeklyForecast.reclaimedHoursPerWeek}h back / week
@@ -1446,7 +1446,7 @@ function Home() {
                 ))}
               </div>
               {plan && plan.recommendations[0] && (
-                <div className="mt-5 rounded-2xl bg-secondary p-4 text-sm leading-6 text-secondary-foreground" data-testid="card-recommendation-top">
+                <div className="mt-5 rounded-2xl border border-[hsl(var(--latch-purple))]/25 bg-[hsl(var(--latch-purple)/0.08)] p-4 text-sm leading-6 text-foreground" data-testid="card-recommendation-top">
                   <p className="font-bold">{plan.recommendations[0].title}</p>
                   <p className="mt-1 text-sm">{plan.recommendations[0].body}</p>
                 </div>
@@ -1462,7 +1462,7 @@ function Home() {
           {plan && plan.recommendations.length > 1 && (
             <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-testid="grid-recommendations">
               {plan.recommendations.slice(1).map((rec) => (
-                <div key={rec.id} className="rounded-2xl bg-background p-4">
+                <div key={rec.id} className="rounded-2xl panel-inset p-4">
                   <p className="text-sm font-bold">{rec.title}</p>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">{rec.body}</p>
                 </div>
@@ -1510,7 +1510,7 @@ function Home() {
             ["Focus", "/focus", "Run phone-free sprints."],
             ["Crew", "/crew", "Compete on time saved with friends."],
           ].map(([label, path, copy]) => (
-            <button key={path} type="button" onClick={() => setLocation(path)} className="rounded-[1.5rem] bg-card p-4 text-left shadow-sm transition hover-elevate active-elevate-2" data-testid={`button-launch-${label.toLowerCase()}`}>
+            <button key={path} type="button" onClick={() => setLocation(path)} className="rounded-[1.5rem] card-premium p-4 text-left transition hover-elevate active-elevate-2" data-testid={`button-launch-${label.toLowerCase()}`}>
               <p className="font-display text-xl font-black">{label}</p>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{copy}</p>
             </button>
@@ -1519,7 +1519,7 @@ function Home() {
       </section>}
 
       {currentPage === "bridge" && <section id="bridge" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-bridge">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-bridge">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">bridge mode</p>
@@ -1528,7 +1528,7 @@ function Home() {
             </div>
             <Mascot compact mood="celebrate" message={bridgeMessage} />
           </div>
-          <div className="mt-7 rounded-[1.5rem] bg-background p-5">
+          <div className="mt-7 rounded-[1.5rem] panel-inset p-5">
             <div className="flex items-center justify-between">
               <p className="font-bold">Bridge charge</p>
               <p className="font-mono font-black tabular-nums" data-testid="text-bridge-charge">{bridgeCharge}%</p>
@@ -1536,24 +1536,24 @@ function Home() {
             <Progress className="mt-4 h-4" value={bridgeCharge} data-testid="progress-bridge-charge" />
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               {Array.from({ length: 7 }).map((_, index) => (
-                <div key={index} className={`h-12 rounded-2xl border ${index < Math.ceil(bridgeCharge / 15) ? "border-primary bg-primary" : "border-border bg-secondary"}`} data-testid={`tile-bridge-${index}`} />
+                <div key={index} className={`h-12 rounded-2xl border transition-all ${index < Math.ceil(bridgeCharge / 15) ? "surface-lime border-[hsl(var(--latch-lime-deep))]/40 shadow-[0_8px_18px_-10px_hsl(76_80%_38%/0.6)]" : "border-border bg-[hsl(var(--latch-cream-soft))]"}`} data-testid={`tile-bridge-${index}`} />
               ))}
             </div>
           </div>
         </article>
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-bridge-games">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-bridge-games">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">fun tools</p>
           <h2 className="mt-2 font-display text-xl font-extrabold tracking-tight">Tap a bridge boost</h2>
           <div className="mt-5 grid gap-3">
-            <button type="button" onClick={() => boostBridge("breath")} className="rounded-2xl bg-background p-4 text-left transition hover-elevate active-elevate-2" data-testid="button-bridge-breath">
+            <button type="button" onClick={() => boostBridge("breath")} className="rounded-2xl panel-inset p-4 text-left transition hover-elevate active-elevate-2" data-testid="button-bridge-breath">
               <p className="font-bold">10-second breath gate</p>
               <p className="mt-1 text-sm text-muted-foreground">Pause your body before the app loads. +6 coins.</p>
             </button>
-            <button type="button" onClick={() => boostBridge("shake")} className="rounded-2xl bg-background p-4 text-left transition hover-elevate active-elevate-2" data-testid="button-bridge-shake">
+            <button type="button" onClick={() => boostBridge("shake")} className="rounded-2xl panel-inset p-4 text-left transition hover-elevate active-elevate-2" data-testid="button-bridge-shake">
               <p className="font-bold">Pattern breaker</p>
               <p className="mt-1 text-sm text-muted-foreground">Stand, stretch, or move for 20 seconds. +6 coins.</p>
             </button>
-            <button type="button" onClick={() => boostBridge("mission")} className="rounded-2xl bg-background p-4 text-left transition hover-elevate active-elevate-2" data-testid="button-bridge-mission">
+            <button type="button" onClick={() => boostBridge("mission")} className="rounded-2xl panel-inset p-4 text-left transition hover-elevate active-elevate-2" data-testid="button-bridge-mission">
               <p className="font-bold">Mini mission card</p>
               <p className="mt-1 text-sm text-muted-foreground">Lumi gives a real-life challenge before the feed. +12 coins.</p>
             </button>
@@ -1566,7 +1566,7 @@ function Home() {
       </section>}
 
       {currentPage === "swaps" && <section id="swaps" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.82fr_1.18fr] lg:px-8">
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-fomo">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-fomo">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">fomo flipped</p>
@@ -1574,18 +1574,18 @@ function Home() {
             </div>
             <TimerReset className="h-5 w-5 text-primary" aria-hidden="true" />
           </div>
-          <div className="mt-6 rounded-[1.5rem] bg-background p-5">
+          <div className="mt-6 rounded-[1.5rem] panel-inset p-5">
             <p className="font-display text-[2.4rem] font-black leading-none tabular-nums" data-testid="text-saved-minutes">{savedMinutes}m</p>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               That is enough for <strong>{lifeEquivalent}</strong>. Social apps create fear of missing out. Latch shows what you miss when you keep scrolling.
             </p>
           </div>
-          <div className="mt-4 rounded-[1.5rem] bg-secondary p-4" data-testid="text-smart-nudge">
+          <div className="mt-4 rounded-[1.5rem] border border-[hsl(var(--latch-purple))]/25 bg-[hsl(var(--latch-purple)/0.08)] p-4" data-testid="text-smart-nudge">
             <Mascot compact mood="coach" message={riskNudge} />
           </div>
         </article>
 
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-offline-feed">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-offline-feed">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">offline feed</p>
@@ -1624,7 +1624,7 @@ function Home() {
                     key={action.id}
                     type="button"
                     onClick={() => completeOfflineAction(action)}
-                    className={`rounded-2xl p-4 text-left transition hover-elevate active-elevate-2 ${done ? "bg-primary text-primary-foreground" : "bg-background"}`}
+                    className={`rounded-2xl p-4 text-left transition hover-elevate active-elevate-2 ${done ? "surface-lime glow-lime" : "panel-inset"}`}
                     data-testid={`button-offline-action-${action.id}`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -1641,7 +1641,7 @@ function Home() {
                         </span>
                       )}
                     </p>
-                    <p className={`mt-1 text-sm ${done ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                    <p className={`mt-1 text-sm ${done ? "text-[hsl(var(--latch-night))]/80" : "text-muted-foreground"}`}>
                       {action.minutes} min · replaces {action.swapFor}
                     </p>
                   </button>
@@ -1653,7 +1653,7 @@ function Home() {
       </section>}
 
       {currentPage === "shop" && <section id="shop" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-reward-shop">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-reward-shop">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">reward shop</p>
@@ -1667,7 +1667,7 @@ function Home() {
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-3">
             {rewardShop.map((item) => (
-              <div key={item.id} className="rounded-2xl bg-background p-4" data-testid={`card-reward-${item.id}`}>
+              <div key={item.id} className="rounded-2xl panel-inset p-4" data-testid={`card-reward-${item.id}`}>
                 <ShoppingBag className="h-5 w-5 text-primary" aria-hidden="true" />
                 <p className="mt-3 font-bold">{item.title}</p>
                 <p className="mt-1 min-h-12 text-sm leading-6 text-muted-foreground">{item.description}</p>
@@ -1681,7 +1681,7 @@ function Home() {
       </section>}
 
       {currentPage === "shield" && <section id="shield" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-shield">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-shield">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">shield rules</p>
@@ -1696,14 +1696,14 @@ function Home() {
                 key={app.id}
                 onClick={() => setSelectedApp(app)}
                 className={`w-full rounded-2xl p-4 text-left transition ${
-                  selectedApp.id === app.id ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover-elevate active-elevate-2"
+                  selectedApp.id === app.id ? "surface-night glow-night" : "panel-inset hover-elevate active-elevate-2"
                 }`}
                 data-testid={`button-select-app-${app.id}`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="font-bold">{app.name}</p>
-                    <p className={`text-sm ${selectedApp.id === app.id ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                    <p className={`font-bold ${selectedApp.id === app.id ? "text-cream" : ""}`}>{app.name}</p>
+                    <p className={`text-sm ${selectedApp.id === app.id ? "text-cream-muted" : "text-muted-foreground"}`}>
                       {app.opens} opens · {app.minutes} min today · {app.category}
                     </p>
                   </div>
@@ -1714,7 +1714,7 @@ function Home() {
           </div>
         </article>
 
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="panel-selected-app">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="panel-selected-app">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">selected shield</p>
@@ -1783,7 +1783,7 @@ function Home() {
                 )}
               </motion.div>
             ) : (
-              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6 rounded-[1.5rem] bg-background p-5" data-testid="panel-shield-empty">
+              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6 rounded-[1.5rem] panel-inset p-5" data-testid="panel-shield-empty">
                 <Mascot compact mood="coach" message="Pick an app, then test the shield. I’ll slow the scroll before it starts." />
               </motion.div>
             )}
@@ -1811,7 +1811,7 @@ function Home() {
       )}
 
       {currentPage === "focus" && <section id="focus" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-focus">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-focus">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">focus</p>
@@ -1837,7 +1837,7 @@ function Home() {
           </div>
         </article>
 
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-weekly">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-weekly">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">progress</p>
@@ -1857,7 +1857,7 @@ function Home() {
       </section>}
 
       {currentPage === "quests" && <section id="quests" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-quests">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-quests">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">quests</p>
@@ -1870,7 +1870,7 @@ function Home() {
               const percent = Math.min(100, (quest.progress / quest.target) * 100);
               const complete = quest.progress >= quest.target;
               return (
-                <article key={quest.id} className="rounded-2xl bg-background p-4" data-testid={`card-quest-${quest.id}`}>
+                <article key={quest.id} className="rounded-2xl panel-inset p-4" data-testid={`card-quest-${quest.id}`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div><p className="font-bold">{quest.title}</p><p className="mt-1 text-sm text-muted-foreground">{quest.description}</p></div>
                     <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-bold text-secondary-foreground">+{quest.reward}</span>
@@ -1888,7 +1888,7 @@ function Home() {
           </div>
         </article>
 
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-psychology">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-psychology">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">simple science</p>
@@ -1905,7 +1905,7 @@ function Home() {
               ["App trick", "Streaks make you return every day."],
               ["Latch flip", "Your streak grows when you protect real-life time."],
             ].map(([title, description], index) => (
-              <div key={title + index} className="flex gap-3 rounded-2xl bg-background p-4" data-testid={`row-psychology-${index}`}>
+              <div key={title + index} className="flex gap-3 rounded-2xl panel-inset p-4" data-testid={`row-psychology-${index}`}>
                 <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-primary-foreground">{index + 1}</div>
                 <div><p className="font-bold">{title}</p><p className="mt-1 text-sm text-muted-foreground">{description}</p></div>
               </div>
@@ -1921,7 +1921,7 @@ function Home() {
       )}
 
       {currentPage === "crew" && <section id="crew" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-crew">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-crew">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">crew</p>
@@ -1932,18 +1932,18 @@ function Home() {
           </div>
           <div className="mt-6 space-y-3">
             {crew.map((person, index) => (
-              <div key={person.name} className={`flex items-center justify-between gap-4 rounded-2xl p-4 ${person.current ? "bg-primary text-primary-foreground" : "bg-background"}`} data-testid={`row-crew-${person.name.toLowerCase()}`}>
+              <div key={person.name} className={`flex items-center justify-between gap-4 rounded-2xl p-4 ${person.current ? "surface-night glow-night" : "panel-inset"}`} data-testid={`row-crew-${person.name.toLowerCase()}`}>
                 <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-sm font-black text-secondary-foreground">{index + 1}</span>
-                  <div><p className="font-bold">{person.name}</p><p className={`text-sm ${person.current ? "text-primary-foreground/80" : "text-muted-foreground"}`}>saved today</p></div>
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-black ${person.current ? "bg-[hsl(var(--latch-lime))] text-[hsl(var(--latch-night))]" : "bg-[hsl(var(--latch-cream-light))] text-foreground border border-card-border/60"}`}>{index + 1}</span>
+                  <div><p className={`font-bold ${person.current ? "text-cream" : ""}`}>{person.name}</p><p className={`text-sm ${person.current ? "text-cream-muted" : "text-muted-foreground"}`}>saved today</p></div>
                 </div>
-                <div className="text-right"><p className="font-mono text-lg font-black tabular-nums">{person.minutes}m</p><p className={`text-sm ${person.current ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{person.delta} vs avg</p></div>
+                <div className="text-right"><p className={`font-mono text-lg font-black tabular-nums ${person.current ? "text-[hsl(var(--latch-lime))]" : ""}`}>{person.minutes}m</p><p className={`text-sm ${person.current ? "text-cream-muted" : "text-muted-foreground"}`}>{person.delta} vs avg</p></div>
               </div>
             ))}
           </div>
         </article>
 
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-roadmap">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-roadmap">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">mobile version</p>
@@ -1959,7 +1959,7 @@ function Home() {
               "Harder shields when relapse patterns show up",
               "Parent or coach view without spying",
             ].map((item) => (
-              <div key={item} className="flex gap-3 rounded-2xl bg-background p-4" data-testid={`row-roadmap-${item.slice(0, 8).toLowerCase().replaceAll(" ", "-")}`}>
+              <div key={item} className="flex gap-3 rounded-2xl panel-inset p-4" data-testid={`row-roadmap-${item.slice(0, 8).toLowerCase().replaceAll(" ", "-")}`}>
                 <Check className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
                 <p className="text-sm text-muted-foreground">{item}</p>
               </div>

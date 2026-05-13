@@ -82,9 +82,9 @@ const presetPlans: PresetPlan[] = [
 const dayNames = ["S", "M", "T", "W", "T", "F", "S"];
 
 function difficultyTone(d: FocusPlan["difficulty"]): string {
-  if (d === "deep_lock") return "border-purple-unlock surface-purple";
-  if (d === "friction") return "border-[hsl(var(--latch-yellow))]/60 bg-[hsl(var(--latch-yellow))]/35 text-foreground";
-  return "border-[hsl(var(--latch-lime))]/60 bg-[hsl(var(--latch-lime))]/30 text-foreground";
+  if (d === "deep_lock") return "border-purple-unlock surface-purple glow-purple";
+  if (d === "friction") return "border-[hsl(var(--latch-yellow))]/60 bg-[hsl(var(--latch-yellow))]/35 text-foreground shadow-[0_12px_24px_-14px_hsl(38_80%_38%/0.45)]";
+  return "border-[hsl(var(--latch-lime))]/55 bg-[hsl(var(--latch-lime))]/22 text-foreground shadow-[0_12px_24px_-14px_hsl(76_80%_38%/0.4)]";
 }
 
 export function FocusPlansPage({ account, onToast }: { account: SafeAccount; onToast: (m: string) => void }) {
@@ -217,7 +217,7 @@ export function FocusPlansPage({ account, onToast }: { account: SafeAccount; onT
   return (
     <section id="plans" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8" data-testid="section-focus-plans">
       <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm sm:p-6">
+        <article className="rounded-[2rem] card-premium p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">scheduled focus plans</p>
@@ -226,7 +226,7 @@ export function FocusPlansPage({ account, onToast }: { account: SafeAccount; onT
                 Inspired by Opal-style sessions. Pick a preset or build your own. Choose how hard it should be to break the lock.
               </p>
             </div>
-            <div className="rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground" data-testid="card-active-plans">
+            <div className="rounded-2xl surface-lime px-4 py-3 glow-lime" data-testid="card-active-plans">
               <p className="text-[10px] font-black uppercase tracking-[0.16em]">active plans</p>
               <p className="font-display text-xl font-black tabular-nums">{active}</p>
             </div>
@@ -234,10 +234,10 @@ export function FocusPlansPage({ account, onToast }: { account: SafeAccount; onT
 
           <div className="mt-6 grid gap-3" data-testid="list-existing-plans">
             {loading && (
-              <p className="rounded-2xl bg-background p-4 text-sm text-muted-foreground">Loading your plans…</p>
+              <p className="rounded-2xl panel-inset p-4 text-sm text-muted-foreground">Loading your plans…</p>
             )}
             {!loading && plans.length === 0 && (
-              <p className="rounded-2xl bg-background p-4 text-sm text-muted-foreground">
+              <p className="rounded-2xl panel-inset p-4 text-sm text-muted-foreground">
                 No focus plans yet. Add a preset on the right, or build a custom one.
               </p>
             )}
@@ -302,7 +302,7 @@ export function FocusPlansPage({ account, onToast }: { account: SafeAccount; onT
             })}
           </div>
 
-          <div className="mt-6 rounded-2xl bg-background p-4" data-testid="card-difficulty-help">
+          <div className="mt-6 rounded-2xl panel-inset p-4" data-testid="card-difficulty-help">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
               <p className="text-sm font-bold">Difficulty levels</p>
@@ -320,7 +320,7 @@ export function FocusPlansPage({ account, onToast }: { account: SafeAccount; onT
           {error && <p className="mt-3 text-xs font-bold text-rose-500" data-testid="text-plan-error">{error}</p>}
         </article>
 
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-plan-presets">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-plan-presets">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">smart presets</p>
@@ -334,7 +334,7 @@ export function FocusPlansPage({ account, onToast }: { account: SafeAccount; onT
                 key={preset.title}
                 type="button"
                 onClick={() => addPreset(preset)}
-                className="rounded-2xl bg-background p-4 text-left transition hover-elevate active-elevate-2"
+                className="rounded-2xl panel-inset p-4 text-left transition hover-elevate active-elevate-2"
                 data-testid={`button-preset-${preset.title.toLowerCase().replaceAll(" ", "-")}`}
               >
                 <p className="flex items-center gap-2 font-bold">
@@ -367,7 +367,7 @@ export function FocusPlansPage({ account, onToast }: { account: SafeAccount; onT
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-4 space-y-3 rounded-2xl bg-background p-4"
+              className="mt-4 space-y-3 rounded-2xl panel-inset p-4 sm:p-5"
               data-testid="form-custom-plan"
             >
               <label className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
@@ -500,7 +500,7 @@ export function FocusPlansPage({ account, onToast }: { account: SafeAccount; onT
             </motion.div>
           )}
 
-          <div className="mt-5 rounded-2xl bg-secondary p-3 text-xs text-secondary-foreground" data-testid="card-emergency-pass-info">
+          <div className="mt-5 rounded-2xl border border-[hsl(var(--latch-yellow))]/50 bg-[hsl(var(--latch-yellow)/0.20)] p-3 text-xs text-foreground" data-testid="card-emergency-pass-info">
             <div className="flex items-start gap-2">
               <Sparkles className="mt-0.5 h-4 w-4" aria-hidden="true" />
               <p>

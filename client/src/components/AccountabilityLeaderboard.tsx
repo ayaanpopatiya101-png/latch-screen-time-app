@@ -69,7 +69,7 @@ export function AccountabilityLeaderboard({
   }, [buddies, account]);
 
   return (
-    <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-accountability">
+    <article className="rounded-[2rem] card-premium p-5" data-testid="section-accountability">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">accountability</p>
@@ -93,21 +93,21 @@ export function AccountabilityLeaderboard({
               key={b.id}
               initial={{ opacity: 0, x: -4 }}
               animate={{ opacity: 1, x: 0 }}
-              className={`flex items-center justify-between gap-3 rounded-2xl p-3 ${isMe ? "bg-primary text-primary-foreground" : "bg-background"}`}
+              className={`flex items-center justify-between gap-3 rounded-2xl p-3 ${isMe ? "surface-night glow-night" : "panel-inset"}`}
               data-testid={`row-buddy-${isMe ? "you" : b.id}`}
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-card text-xs font-black text-foreground">
+                <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black ${isMe ? "bg-[hsl(var(--latch-lime))] text-[hsl(var(--latch-night))]" : "bg-[hsl(var(--latch-cream-light))] text-foreground border border-card-border/60"}`}>
                   {index + 1}
                 </span>
                 <div>
-                  <p className="font-bold">{b.buddyName}{isMe && " (you)"}</p>
-                  <p className={`text-xs ${isMe ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{b.challengeTitle}</p>
+                  <p className={`font-bold ${isMe ? "text-cream" : ""}`}>{b.buddyName}{isMe && " (you)"}</p>
+                  <p className={`text-xs ${isMe ? "text-cream-muted" : "text-muted-foreground"}`}>{b.challengeTitle}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-mono text-base font-black tabular-nums">{b.pointsThisWeek} pts</p>
-                <p className={`text-[11px] ${isMe ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{b.minutesSaved}m saved</p>
+                <p className={`font-mono text-base font-black tabular-nums ${isMe ? "text-[hsl(var(--latch-lime))]" : ""}`}>{b.pointsThisWeek} pts</p>
+                <p className={`text-[11px] ${isMe ? "text-cream-muted" : "text-muted-foreground"}`}>{b.minutesSaved}m saved</p>
               </div>
             </motion.div>
           );
@@ -126,7 +126,7 @@ export function AccountabilityLeaderboard({
       </Button>
 
       {showInvite && (
-        <div className="mt-3 space-y-2 rounded-2xl bg-background p-3" data-testid="form-invite-buddy">
+        <div className="mt-3 space-y-2 rounded-2xl panel-inset p-3" data-testid="form-invite-buddy">
           <input
             value={buddyName}
             onChange={(e) => setBuddyName(e.target.value)}

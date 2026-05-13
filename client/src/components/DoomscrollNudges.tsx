@@ -30,7 +30,7 @@ export function DoomscrollNudges({
 
   const on = account.profile.doomscrollNudges;
   return (
-    <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="card-doomscroll-nudges">
+    <article className="rounded-[2rem] card-premium p-5" data-testid="card-doomscroll-nudges">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">awareness</p>
@@ -45,7 +45,7 @@ export function DoomscrollNudges({
         </Button>
       </div>
       {on && (
-        <div className="mt-3 rounded-2xl bg-background p-3 text-xs text-muted-foreground" data-testid="card-example-nudge">
+        <div className="mt-3 rounded-2xl panel-inset p-3 text-xs text-muted-foreground" data-testid="card-example-nudge">
           <p className="font-bold text-foreground">Example nudge</p>
           <p className="mt-1">"You've been on TikTok 22 min this hour. Quick check: bored, tired, or stressed? Lumi has a 3-min swap that fits."</p>
         </div>

@@ -183,7 +183,7 @@ export function EarnUnlockPage({
 
   return (
     <section id="earn" className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8" data-testid="section-earn-unlock">
-      <article className="rounded-[2rem] bg-card p-5 shadow-sm sm:p-6">
+      <article className="rounded-[2rem] card-premium p-5 sm:p-6 lg:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">earn &amp; unlock</p>
@@ -193,18 +193,18 @@ export function EarnUnlockPage({
             </p>
           </div>
           <div className="grid gap-2 text-right">
-            <div className="rounded-2xl surface-lime px-4 py-3 shadow-sm" data-testid="card-latch-credits">
+            <div className="rounded-2xl surface-lime px-4 py-3 glow-lime" data-testid="card-latch-credits">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[hsl(var(--latch-night))]/70">credits</p>
               <p className="font-display text-2xl font-black tabular-nums">{credits}</p>
             </div>
-            <div className="rounded-2xl surface-purple px-4 py-2 shadow-sm" data-testid="card-unlock-minutes">
+            <div className="rounded-2xl surface-purple px-4 py-2 glow-purple" data-testid="card-unlock-minutes">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cream-muted">banked unlock</p>
               <p className="font-mono text-lg font-black tabular-nums">{unlockMinutes} min</p>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 rounded-[1.5rem] surface-night p-5 shadow-sm" data-testid="card-brain-energy">
+        <div className="mt-6 rounded-[1.5rem] surface-night p-5" data-testid="card-brain-energy">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Zap className={`h-5 w-5 ${energyColor}`} aria-hidden="true" />
@@ -219,15 +219,15 @@ export function EarnUnlockPage({
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-3" data-testid="card-earn-summary">
-          <div className="rounded-2xl bg-secondary p-3 text-secondary-foreground">
-            <p className="text-xs font-black uppercase tracking-[0.16em]">earned today</p>
+          <div className="rounded-2xl border border-[hsl(var(--latch-lime))]/45 bg-[hsl(var(--latch-lime)/0.18)] p-3 text-foreground">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-[hsl(var(--latch-lime-deep))]">earned today</p>
             <p className="mt-1 font-mono text-lg font-black tabular-nums">+{todayEarned}</p>
           </div>
-          <div className="rounded-2xl bg-secondary p-3 text-secondary-foreground">
-            <p className="text-xs font-black uppercase tracking-[0.16em]">spent today</p>
+          <div className="rounded-2xl border border-[hsl(var(--latch-purple))]/30 bg-[hsl(var(--latch-purple)/0.10)] p-3 text-foreground">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-purple-unlock">spent today</p>
             <p className="mt-1 font-mono text-lg font-black tabular-nums">-{todaySpent}</p>
           </div>
-          <div className="rounded-2xl bg-secondary p-3 text-secondary-foreground">
+          <div className="rounded-2xl border border-[hsl(var(--latch-yellow))]/50 bg-[hsl(var(--latch-yellow)/0.22)] p-3 text-foreground">
             <p className="text-xs font-black uppercase tracking-[0.16em]">offline acts</p>
             <p className="mt-1 font-mono text-lg font-black tabular-nums">{offlineCount}</p>
           </div>
@@ -245,7 +245,7 @@ export function EarnUnlockPage({
                 type="button"
                 disabled={isBusy}
                 onClick={() => handleEarn(activity)}
-                className="group rounded-2xl bg-background p-4 text-left transition hover-elevate active-elevate-2 disabled:opacity-60"
+                className="group rounded-2xl panel-inset p-4 text-left transition hover-elevate active-elevate-2 disabled:opacity-60"
                 data-testid={`button-earn-${activity.id}`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -276,7 +276,7 @@ export function EarnUnlockPage({
       </article>
 
       <aside className="grid gap-4">
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-spend-unlock">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-spend-unlock">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">spend credits</p>
@@ -293,7 +293,7 @@ export function EarnUnlockPage({
               const canAfford = credits >= cost;
               const isBusy = busy === `spend-${bundle.minutes}`;
               return (
-                <div key={bundle.id} className="rounded-2xl bg-background p-4" data-testid={`card-unlock-${bundle.id}`}>
+                <div key={bundle.id} className="rounded-2xl panel-inset p-4" data-testid={`card-unlock-${bundle.id}`}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="font-bold">{bundle.label}</p>
@@ -319,7 +319,7 @@ export function EarnUnlockPage({
           )}
         </article>
 
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-ledger">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-ledger">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">ledger</p>
@@ -329,7 +329,7 @@ export function EarnUnlockPage({
           </div>
           <div className="mt-4 space-y-2" data-testid="list-ledger">
             {ledger.length === 0 && (
-              <p className="rounded-2xl bg-background p-4 text-sm text-muted-foreground">
+              <p className="rounded-2xl panel-inset p-4 text-sm text-muted-foreground">
                 No activity yet. Earn one credit and the loop starts here.
               </p>
             )}
@@ -338,7 +338,7 @@ export function EarnUnlockPage({
                 key={entry.id}
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between gap-3 rounded-2xl bg-background p-3"
+                className="flex items-center justify-between gap-3 rounded-2xl panel-inset p-3"
                 data-testid={`row-ledger-${entry.id}`}
               >
                 <div className="min-w-0">
@@ -354,21 +354,21 @@ export function EarnUnlockPage({
           </div>
         </article>
 
-        <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-loop-diagram">
+        <article className="rounded-[2rem] card-premium p-5" data-testid="section-loop-diagram">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">how the loop works</p>
           <h2 className="mt-2 font-display text-xl font-extrabold tracking-tight">Live first, scroll second</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl bg-background p-3 text-center">
+            <div className="rounded-2xl panel-inset p-3 text-center">
               <Sparkles className="mx-auto h-5 w-5 text-primary" aria-hidden="true" />
               <p className="mt-2 text-sm font-bold">Do a thing</p>
               <p className="mt-1 text-xs text-muted-foreground">Walk, breathe, study, journal.</p>
             </div>
-            <div className="rounded-2xl bg-background p-3 text-center">
+            <div className="rounded-2xl panel-inset p-3 text-center">
               <Zap className="mx-auto h-5 w-5 text-primary" aria-hidden="true" />
               <p className="mt-2 text-sm font-bold">Earn credits</p>
               <p className="mt-1 text-xs text-muted-foreground">Real-life action becomes points.</p>
             </div>
-            <div className="rounded-2xl bg-background p-3 text-center">
+            <div className="rounded-2xl panel-inset p-3 text-center">
               <Unlock className="mx-auto h-5 w-5 text-primary" aria-hidden="true" />
               <p className="mt-2 text-sm font-bold">Spend on time</p>
               <p className="mt-1 text-xs text-muted-foreground">Buy short, capped app windows.</p>

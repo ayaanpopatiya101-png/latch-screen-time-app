@@ -104,8 +104,8 @@ export function AccountGate({ onAuthed }: { onAuthed: (account: SafeAccount) => 
   const stepLabels = mode === "signup" ? ["Name", "Age", "Login", "Password"] : ["Login", "Password"];
 
   return (
-    <main className="min-h-screen overflow-hidden bg-background text-foreground" data-testid="screen-account-gate">
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_10%_15%,hsl(var(--latch-yellow)/0.32),transparent_24%),radial-gradient(circle_at_90%_25%,hsl(var(--latch-lime)/0.26),transparent_28%),radial-gradient(circle_at_50%_95%,hsl(var(--latch-purple)/0.18),transparent_30%),linear-gradient(135deg,hsl(var(--background)),hsl(var(--latch-cream-soft)))]" />
+    <main className="min-h-screen overflow-hidden bg-mesh text-foreground" data-testid="screen-account-gate">
+      <div className="pointer-events-none fixed inset-0 -z-10 opacity-80 mix-blend-overlay bg-[radial-gradient(circle_at_18%_20%,hsl(var(--latch-yellow)/0.45),transparent_30%),radial-gradient(circle_at_82%_18%,hsl(var(--latch-lime)/0.35),transparent_30%),radial-gradient(circle_at_50%_100%,hsl(var(--latch-purple)/0.30),transparent_35%)]" />
 
       <AnimatePresence>
         {celebrating && (
@@ -121,7 +121,7 @@ export function AccountGate({ onAuthed }: { onAuthed: (account: SafeAccount) => 
               initial={{ scale: 0.85, y: 24, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               transition={{ type: "spring", stiffness: 220, damping: 18 }}
-              className="mx-4 w-full max-w-md rounded-[2rem] border border-border/70 bg-card p-7 text-center shadow-xl"
+              className="mx-4 w-full max-w-md rounded-[2rem] card-premium p-7 text-center glow-lime"
             >
               <div className="flex justify-center">
                 <LumiAvatar mood="celebrate" size="lg" />
@@ -151,7 +151,7 @@ export function AccountGate({ onAuthed }: { onAuthed: (account: SafeAccount) => 
 
       <section className="mx-auto grid max-w-5xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
         <aside
-          className="order-2 rounded-[2rem] border border-border/70 bg-card/88 p-5 shadow-sm backdrop-blur lg:order-1 lg:sticky lg:top-6 lg:self-start"
+          className="order-2 rounded-[2rem] card-premium p-5 backdrop-blur lg:order-1 lg:sticky lg:top-6 lg:self-start"
           data-testid="panel-account-mascot"
         >
           <div className="flex items-start gap-3">
@@ -163,10 +163,10 @@ export function AccountGate({ onAuthed }: { onAuthed: (account: SafeAccount) => 
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.22 }}
-                className="relative rounded-2xl bg-background p-4 text-sm font-medium leading-6 shadow-sm"
+                className="relative rounded-2xl panel-inset p-4 text-sm font-medium leading-6 shadow-sm"
                 data-testid="text-lumi-message"
               >
-                <span aria-hidden="true" className="absolute -left-2 top-5 h-3 w-3 rotate-45 bg-background" />
+                <span aria-hidden="true" className="absolute -left-2 top-5 h-3 w-3 rotate-45 bg-[hsl(var(--latch-cream-light))] border-l border-b border-card-border/70" />
                 {lumi.message}
               </motion.div>
             </AnimatePresence>
@@ -197,21 +197,21 @@ export function AccountGate({ onAuthed }: { onAuthed: (account: SafeAccount) => 
           </div>
 
           <div className="mt-6 grid gap-3">
-            <div className="flex items-start gap-3 rounded-2xl bg-background p-3">
+            <div className="flex items-start gap-3 rounded-2xl panel-inset p-3">
               <Coins className="mt-0.5 h-5 w-5 text-primary" aria-hidden="true" />
               <div className="text-sm leading-5">
                 <p className="font-bold">First reward</p>
                 <p className="text-muted-foreground">Earn <strong>+10 Latch Credits</strong> the moment your account is ready.</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 rounded-2xl bg-background p-3">
+            <div className="flex items-start gap-3 rounded-2xl panel-inset p-3">
               <Shield className="mt-0.5 h-5 w-5 text-primary" aria-hidden="true" />
               <div className="text-sm leading-5">
                 <p className="font-bold">Private by default</p>
                 <p className="text-muted-foreground">No cookies, no local storage. Closing the tab signs you out.</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 rounded-2xl bg-background p-3">
+            <div className="flex items-start gap-3 rounded-2xl panel-inset p-3">
               <Wand2 className="mt-0.5 h-5 w-5 text-primary" aria-hidden="true" />
               <div className="text-sm leading-5">
                 <p className="font-bold">A plan made for you</p>
@@ -222,7 +222,7 @@ export function AccountGate({ onAuthed }: { onAuthed: (account: SafeAccount) => 
         </aside>
 
         <div className="order-1 lg:order-2">
-          <header className="rounded-[2rem] border border-border/70 bg-card/92 p-6 shadow-sm backdrop-blur">
+          <header className="rounded-[2rem] card-premium p-6 backdrop-blur">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
               <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
@@ -241,7 +241,7 @@ export function AccountGate({ onAuthed }: { onAuthed: (account: SafeAccount) => 
 
           <form
             onSubmit={submit}
-            className="mt-5 rounded-[2rem] border border-border/70 bg-card/92 p-6 shadow-sm backdrop-blur sm:p-7"
+            className="mt-5 rounded-[2rem] card-premium p-6 backdrop-blur sm:p-7"
             data-testid={`form-account-${mode}`}
           >
             <div className="grid gap-4">
@@ -361,7 +361,7 @@ export function AccountGate({ onAuthed }: { onAuthed: (account: SafeAccount) => 
             </div>
 
             {mode === "signup" && (
-              <p className="mt-5 rounded-2xl bg-secondary px-4 py-3 text-xs font-medium leading-5 text-secondary-foreground">
+              <p className="mt-5 rounded-2xl border border-[hsl(var(--latch-lime))]/45 bg-[hsl(var(--latch-lime)/0.18)] px-4 py-3 text-xs font-medium leading-5 text-foreground">
                 Finish all four steps to earn your first <strong>10 Latch Credits</strong>. You can spend credits to unlock rewards later.
               </p>
             )}

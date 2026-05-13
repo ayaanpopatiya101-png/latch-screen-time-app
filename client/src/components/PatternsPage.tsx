@@ -90,7 +90,7 @@ export function PatternsPage({ accountId }: Props) {
 
   return (
     <section className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:px-8">
-      <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-patterns-intro">
+      <article className="rounded-[2rem] card-premium p-5" data-testid="section-patterns-intro">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">habit patterns</p>
@@ -124,7 +124,7 @@ export function PatternsPage({ accountId }: Props) {
             </button>
           ))}
         </div>
-        <div className="mt-5 rounded-2xl bg-background p-4">
+        <div className="mt-5 rounded-2xl panel-inset p-4">
           <p className="text-sm font-bold">Need example data?</p>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
             The web prototype can't read real iPhone or Android app opens. Seed a demo to see how
@@ -146,7 +146,7 @@ export function PatternsPage({ accountId }: Props) {
             </p>
           )}
         </div>
-        <div className="mt-5 rounded-2xl bg-secondary p-4 text-sm leading-6 text-secondary-foreground">
+        <div className="mt-5 rounded-2xl border border-[hsl(var(--latch-purple))]/25 bg-[hsl(var(--latch-purple)/0.08)] p-4 text-sm leading-6 text-foreground">
           <p className="font-bold">How Latch decides</p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>Week: opens on at least 4 of the last 7 days at the same 3-hour window.</li>
@@ -156,7 +156,7 @@ export function PatternsPage({ accountId }: Props) {
         </div>
       </article>
 
-      <article className="rounded-[2rem] bg-card p-5 shadow-sm" data-testid="section-patterns-list">
+      <article className="rounded-[2rem] card-premium p-5" data-testid="section-patterns-list">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
@@ -170,13 +170,13 @@ export function PatternsPage({ accountId }: Props) {
         </div>
 
         {error && (
-          <p className="mt-4 rounded-2xl bg-background p-4 text-sm text-destructive" data-testid="text-patterns-error">
+          <p className="mt-4 rounded-2xl panel-inset p-4 text-sm text-destructive" data-testid="text-patterns-error">
             {error}
           </p>
         )}
 
         {!loading && !hasAny && !error && (
-          <div className="mt-5 rounded-2xl bg-background p-5" data-testid="panel-patterns-empty">
+          <div className="mt-5 rounded-2xl panel-inset p-5" data-testid="panel-patterns-empty">
             <p className="text-sm font-bold">Nothing repeats yet for the {periodLabel(period)}.</p>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
               Once your phone forwards real app open events to Latch (or once you seed demo data),
@@ -200,7 +200,7 @@ export function PatternsPage({ accountId }: Props) {
                 key={pattern.patternKey}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl bg-background p-4"
+                className="rounded-2xl panel-inset p-4"
                 data-testid={`card-pattern-${pattern.patternKey}`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -235,7 +235,7 @@ export function PatternsPage({ accountId }: Props) {
                 )}
 
                 {askUser && (
-                  <div className="mt-4 rounded-2xl bg-secondary p-3" data-testid={`prompt-pattern-${pattern.patternKey}`}>
+                  <div className="mt-4 rounded-2xl border border-[hsl(var(--latch-yellow))]/55 bg-[hsl(var(--latch-yellow)/0.20)] p-3" data-testid={`prompt-pattern-${pattern.patternKey}`}>
                     <p className="text-sm font-bold text-secondary-foreground">
                       {pattern.suggestedQuestion}
                     </p>
@@ -311,7 +311,7 @@ export function PatternsPage({ accountId }: Props) {
         </div>
 
         {blockRules.length > 0 && (
-          <div className="mt-6 rounded-2xl bg-background p-4" data-testid="section-active-blocks">
+          <div className="mt-6 rounded-2xl panel-inset p-4" data-testid="section-active-blocks">
             <p className="text-sm font-bold">All active block rules</p>
             <ul className="mt-2 space-y-2">
               {blockRules.map((rule) => (
