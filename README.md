@@ -4,12 +4,19 @@ Latch uses the same psychology social media uses on you — to give you
 back your time. Friction-before-scroll, daily quests, and offline swaps,
 all wrapped in a warm, mascot-led UI.
 
-This repository contains two parts:
+This repository now contains three parts:
 
 | Folder | What it is | Status |
 | --- | --- | --- |
 | [`client/`](./client) (+ `server/`, `shared/`) | **Web prototype** — React + Vite + TypeScript. Demonstrates the flow and feel. | ✅ Runs in any browser |
-| [`ios/`](./ios) | **Native iOS scaffold** — SwiftUI starter targeting iOS 16+ with FamilyControls / DeviceActivity / ManagedSettings. | 🛠 Source only — open in Xcode on a Mac to build |
+| [`mobile/`](./mobile) | **Expo / React Native mobile prototype** — TypeScript, Expo Router, Lumi interview, dashboard, focus, shield, credits, permissions. | ✅ Runs via `expo start`; native screen-time still mocked |
+| [`ios/`](./ios) | **Native iOS scaffold** — SwiftUI starter targeting iOS 16+ with FamilyControls / DeviceActivity / ManagedSettings. Will be folded into the Expo mobile project via Expo Modules during prebuild. | 🛠 Source only — open in Xcode on a Mac to build |
+
+Additional documentation has been added:
+
+- [`docs/`](./docs) — privacy policy, app-privacy notes, data-safety notes, iOS + Android native integration plans, Apple Family Controls entitlement request, real-device test plan, public launch checklist, review-issues template.
+- [`store/`](./store) — Apple App Store listing, Google Play listing, TestFlight plan, Google internal testing plan.
+- [`.github/workflows/`](./.github/workflows) — Web CI, Mobile CI, manual EAS preview build trigger.
 
 ## Web prototype vs native iOS app
 
