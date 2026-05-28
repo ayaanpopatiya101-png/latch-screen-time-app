@@ -2,82 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE - Unrot-inspired warm cream + neon lime + deep night */
+/* LIGHT MODE — Forest + Gold + Sand palette.
+ * Token names are kept for compatibility (e.g. --latch-purple is now a deep
+ * forest, --latch-lime is leaf green). Values are remapped so the entire app
+ * adopts the new palette without renaming hundreds of class references. */
 :root {
-  --button-outline: rgba(27, 24, 40, 0.22);
-  --badge-outline: rgba(27, 24, 40, 0.12);
+  --button-outline: rgba(15, 51, 41, 0.22);
+  --badge-outline: rgba(15, 51, 41, 0.12);
   --opaque-button-border-intensity: -10;
-  --elevate-1: rgba(27, 24, 40, 0.06);
-  --elevate-2: rgba(27, 24, 40, 0.12);
-  /* Warm cream global background — slightly richer, less washed out */
-  --background: 44 95% 90%;
-  --foreground: 252 24% 12%;
-  --border: 42 50% 74%;
+  --elevate-1: rgba(15, 51, 41, 0.06);
+  --elevate-2: rgba(15, 51, 41, 0.12);
+  /* Sand global background — warm cream */
+  --background: 41 76% 91%;
+  --foreground: 161 56% 13%;
+  --border: 41 40% 78%;
   /* Cards stay lighter cream — soft contrast and a touch warmer */
-  --card: 46 100% 96%;
-  --card-foreground: 252 24% 12%;
-  --card-border: 42 60% 80%;
-  --sidebar: 46 100% 92%;
-  --sidebar-foreground: 252 24% 12%;
-  --sidebar-border: 42 50% 74%;
-  --sidebar-primary: 252 24% 12%;
-  --sidebar-primary-foreground: 73 100% 64%;
-  --sidebar-accent: 46 100% 88%;
-  --sidebar-accent-foreground: 252 24% 12%;
-  --sidebar-ring: 252 24% 12%;
-  --popover: 46 100% 96%;
-  --popover-foreground: 252 24% 12%;
-  --popover-border: 42 60% 80%;
-  /* Primary = deep night for CTAs / protection */
-  --primary: 252 24% 12%;
-  --primary-foreground: 73 100% 64%;
+  --card: 42 100% 95%;
+  --card-foreground: 161 56% 13%;
+  --card-border: 41 55% 82%;
+  --sidebar: 42 100% 93%;
+  --sidebar-foreground: 161 56% 13%;
+  --sidebar-border: 41 40% 78%;
+  --sidebar-primary: 160 54% 19%;
+  --sidebar-primary-foreground: 42 100% 95%;
+  --sidebar-accent: 42 100% 88%;
+  --sidebar-accent-foreground: 161 56% 13%;
+  --sidebar-ring: 160 54% 19%;
+  --popover: 42 100% 95%;
+  --popover-foreground: 161 56% 13%;
+  --popover-border: 41 55% 82%;
+  /* Primary = deep forest for CTAs / protection */
+  --primary: 160 54% 19%;
+  --primary-foreground: 42 100% 95%;
   /* Secondary = cream pill / soft surface */
-  --secondary: 46 100% 92%;
-  --secondary-foreground: 252 24% 12%;
-  --muted: 44 70% 89%;
-  --muted-foreground: 252 14% 32%;
-  /* Accent = neon lime reward */
-  --accent: 73 100% 60%;
-  --accent-foreground: 252 24% 12%;
-  --destructive: 353 72% 50%;
-  --destructive-foreground: 48 100% 95%;
-  --input: 252 14% 48%;
-  --ring: 252 24% 12%;
-  --chart-1: 252 24% 12%;
-  --chart-2: 73 95% 52%;
-  --chart-3: 254 90% 64%;
-  --chart-4: 38 100% 58%;
-  --chart-5: 152 68% 50%;
-  /* Unrot-inspired palette tokens — refined for richer, more premium look */
-  --latch-cream: 44 95% 90%;
-  --latch-cream-soft: 46 100% 93%;
-  --latch-cream-light: 46 100% 96%;
-  --latch-night: 252 24% 12%;
-  --latch-night-deep: 240 12% 6%;
-  --latch-night-soft: 252 18% 22%;
-  --latch-purple: 254 90% 64%;
-  --latch-purple-deep: 257 38% 22%;
-  --latch-purple-soft: 254 70% 80%;
-  --latch-lime: 73 100% 60%;
-  --latch-lime-deep: 76 80% 42%;
-  --latch-green: 152 68% 50%;
-  --latch-yellow: 38 100% 58%;
-  --latch-yellow-soft: 42 100% 72%;
-  --latch-rose: 353 78% 60%;
+  --secondary: 42 100% 92%;
+  --secondary-foreground: 161 56% 13%;
+  --muted: 41 60% 88%;
+  --muted-foreground: 158 22% 28%;
+  /* Accent = leaf green reward */
+  --accent: 138 45% 55%;
+  --accent-foreground: 161 56% 13%;
+  --destructive: 1 62% 52%;
+  --destructive-foreground: 42 100% 95%;
+  --input: 158 18% 42%;
+  --ring: 160 54% 19%;
+  --chart-1: 160 54% 19%;
+  --chart-2: 138 45% 55%;
+  --chart-3: 152 43% 25%;
+  --chart-4: 42 100% 70%;
+  --chart-5: 38 80% 57%;
+  /* Latch tokens — forest + gold + sand. Names retained for backwards-compat. */
+  --latch-cream: 41 76% 91%;        /* sand */
+  --latch-cream-soft: 41 67% 86%;   /* warmer cream */
+  --latch-cream-light: 42 100% 95%; /* lightest cream surface */
+  --latch-night: 160 54% 19%;       /* forest (was deep ink) */
+  --latch-night-deep: 161 56% 13%;  /* darkest forest */
+  --latch-night-soft: 152 43% 25%;  /* mid forest */
+  /* "purple" is now a darker forest accent used on focus panels */
+  --latch-purple: 154 35% 38%;
+  --latch-purple-deep: 161 56% 13%;
+  --latch-purple-soft: 150 28% 70%;
+  /* "lime" is now leaf green */
+  --latch-lime: 138 45% 55%;
+  --latch-lime-deep: 138 43% 43%;
+  --latch-green: 138 45% 55%;
+  /* Gold / yellow */
+  --latch-yellow: 42 100% 70%;
+  --latch-yellow-soft: 42 100% 82%;
+  --latch-rose: 1 62% 58%;
   --font-sans: 'Satoshi', 'Inter', sans-serif;
   --font-display: 'Cabinet Grotesk', 'Satoshi', sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: 'JetBrains Mono', 'Menlo', monospace;
   --radius: 0.5rem;
   /* Real, soft shadows — flat shadows were making cards look stickered */
-  --shadow-2xs: 0 1px 2px hsl(252 24% 12% / 0.05);
-  --shadow-xs: 0 1px 2px hsl(252 24% 12% / 0.06);
-  --shadow-sm: 0 1px 3px hsl(252 24% 12% / 0.07), 0 1px 2px hsl(252 24% 12% / 0.04);
-  --shadow: 0 4px 12px -3px hsl(252 24% 12% / 0.09), 0 2px 4px -2px hsl(252 24% 12% / 0.05);
-  --shadow-md: 0 8px 22px -8px hsl(252 24% 12% / 0.14), 0 3px 6px -3px hsl(252 24% 12% / 0.06);
-  --shadow-lg: 0 18px 36px -12px hsl(252 24% 12% / 0.18), 0 6px 12px -6px hsl(252 24% 12% / 0.08);
-  --shadow-xl: 0 28px 50px -18px hsl(252 24% 12% / 0.24), 0 10px 18px -10px hsl(252 24% 12% / 0.10);
-  --shadow-2xl: 0 36px 70px -22px hsl(252 24% 12% / 0.34);
+  --shadow-2xs: 0 1px 2px hsl(161 56% 13% / 0.05);
+  --shadow-xs: 0 1px 2px hsl(161 56% 13% / 0.06);
+  --shadow-sm: 0 1px 3px hsl(161 56% 13% / 0.07), 0 1px 2px hsl(161 56% 13% / 0.04);
+  --shadow: 0 4px 12px -3px hsl(161 56% 13% / 0.09), 0 2px 4px -2px hsl(161 56% 13% / 0.05);
+  --shadow-md: 0 8px 22px -8px hsl(161 56% 13% / 0.14), 0 3px 6px -3px hsl(161 56% 13% / 0.06);
+  --shadow-lg: 0 18px 36px -12px hsl(161 56% 13% / 0.18), 0 6px 12px -6px hsl(161 56% 13% / 0.08);
+  --shadow-xl: 0 28px 50px -18px hsl(161 56% 13% / 0.24), 0 10px 18px -10px hsl(161 56% 13% / 0.10);
+  --shadow-2xl: 0 36px 70px -22px hsl(161 56% 13% / 0.34);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -124,61 +130,62 @@
   );
 }
 
+/* DARK MODE — deep forest with warm cream text. */
 .dark {
-  --button-outline: rgba(212, 255, 102, 0.24);
-  --badge-outline: rgba(212, 255, 102, 0.10);
+  --button-outline: rgba(255, 209, 102, 0.24);
+  --badge-outline: rgba(255, 209, 102, 0.10);
   --opaque-button-border-intensity: 11;
-  --elevate-1: rgba(212, 255, 102, 0.07);
-  --elevate-2: rgba(212, 255, 102, 0.14);
-  --background: 252 26% 8%;
-  --foreground: 46 100% 94%;
-  --border: 252 20% 22%;
-  --card: 252 26% 13%;
-  --card-foreground: 46 100% 94%;
-  --card-border: 252 20% 24%;
-  --sidebar: 252 26% 11%;
-  --sidebar-foreground: 46 100% 94%;
-  --sidebar-border: 252 20% 22%;
-  --sidebar-primary: 73 100% 62%;
-  --sidebar-primary-foreground: 252 26% 12%;
-  --sidebar-accent: 257 40% 24%;
-  --sidebar-accent-foreground: 46 100% 94%;
-  --sidebar-ring: 73 100% 62%;
-  --popover: 252 26% 13%;
-  --popover-foreground: 46 100% 94%;
-  --popover-border: 252 20% 24%;
-  --primary: 73 100% 62%;
-  --primary-foreground: 252 26% 12%;
-  --secondary: 257 40% 24%;
-  --secondary-foreground: 46 100% 94%;
-  --muted: 252 20% 18%;
-  --muted-foreground: 46 30% 78%;
-  --accent: 73 100% 62%;
-  --accent-foreground: 252 26% 12%;
-  --destructive: 353 72% 60%;
-  --destructive-foreground: 48 100% 95%;
-  --input: 252 20% 38%;
-  --ring: 73 100% 62%;
-  --chart-1: 73 100% 62%;
-  --chart-2: 254 95% 76%;
-  --chart-3: 38 100% 64%;
-  --chart-4: 152 68% 56%;
-  --chart-5: 46 100% 88%;
-  --latch-cream: 44 95% 90%;
-  --latch-cream-soft: 46 100% 93%;
-  --latch-cream-light: 46 100% 96%;
-  --latch-night: 252 26% 13%;
-  --latch-night-deep: 240 12% 6%;
-  --latch-night-soft: 252 22% 22%;
-  --latch-purple: 254 95% 72%;
-  --latch-purple-deep: 257 40% 26%;
-  --latch-purple-soft: 254 80% 78%;
-  --latch-lime: 73 100% 62%;
-  --latch-lime-deep: 76 80% 46%;
-  --latch-green: 152 68% 54%;
-  --latch-yellow: 38 100% 62%;
-  --latch-yellow-soft: 42 100% 74%;
-  --latch-rose: 353 78% 64%;
+  --elevate-1: rgba(255, 209, 102, 0.07);
+  --elevate-2: rgba(255, 209, 102, 0.14);
+  --background: 161 56% 9%;
+  --foreground: 42 100% 94%;
+  --border: 158 28% 22%;
+  --card: 161 50% 13%;
+  --card-foreground: 42 100% 94%;
+  --card-border: 158 30% 24%;
+  --sidebar: 161 50% 11%;
+  --sidebar-foreground: 42 100% 94%;
+  --sidebar-border: 158 28% 22%;
+  --sidebar-primary: 138 45% 60%;
+  --sidebar-primary-foreground: 161 56% 12%;
+  --sidebar-accent: 154 35% 22%;
+  --sidebar-accent-foreground: 42 100% 94%;
+  --sidebar-ring: 138 45% 60%;
+  --popover: 161 50% 13%;
+  --popover-foreground: 42 100% 94%;
+  --popover-border: 158 30% 24%;
+  --primary: 138 45% 60%;
+  --primary-foreground: 161 56% 12%;
+  --secondary: 154 35% 22%;
+  --secondary-foreground: 42 100% 94%;
+  --muted: 158 28% 18%;
+  --muted-foreground: 42 30% 78%;
+  --accent: 42 100% 70%;
+  --accent-foreground: 161 56% 12%;
+  --destructive: 1 62% 60%;
+  --destructive-foreground: 42 100% 95%;
+  --input: 158 22% 38%;
+  --ring: 138 45% 60%;
+  --chart-1: 138 45% 60%;
+  --chart-2: 42 100% 70%;
+  --chart-3: 154 35% 38%;
+  --chart-4: 38 80% 57%;
+  --chart-5: 42 100% 88%;
+  --latch-cream: 41 76% 91%;
+  --latch-cream-soft: 41 67% 86%;
+  --latch-cream-light: 42 100% 95%;
+  --latch-night: 161 50% 13%;
+  --latch-night-deep: 161 56% 9%;
+  --latch-night-soft: 152 43% 25%;
+  --latch-purple: 154 35% 42%;
+  --latch-purple-deep: 161 56% 13%;
+  --latch-purple-soft: 150 28% 70%;
+  --latch-lime: 138 45% 60%;
+  --latch-lime-deep: 138 43% 46%;
+  --latch-green: 138 45% 60%;
+  --latch-yellow: 42 100% 70%;
+  --latch-yellow-soft: 42 100% 82%;
+  --latch-rose: 1 62% 64%;
   --shadow-2xs: 0 1px 2px hsl(0 0% 0% / 0.4);
   --shadow-xs: 0 1px 2px hsl(0 0% 0% / 0.4);
   --shadow-sm: 0 2px 6px hsl(0 0% 0% / 0.45), 0 1px 2px hsl(0 0% 0% / 0.30);
@@ -239,17 +246,17 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
     background-image:
-      radial-gradient(1100px 600px at 8% -10%, hsl(var(--latch-yellow) / 0.18), transparent 60%),
+      radial-gradient(1100px 600px at 8% -10%, hsl(var(--latch-yellow) / 0.22), transparent 60%),
       radial-gradient(900px 500px at 110% 0%, hsl(var(--latch-lime) / 0.16), transparent 65%),
-      radial-gradient(1000px 700px at 50% 110%, hsl(var(--latch-purple) / 0.12), transparent 60%);
+      radial-gradient(1000px 700px at 50% 110%, hsl(var(--latch-night) / 0.10), transparent 60%);
     background-attachment: fixed;
   }
 
   .dark body {
     background-image:
-      radial-gradient(1100px 600px at 10% -10%, hsl(var(--latch-purple) / 0.22), transparent 60%),
-      radial-gradient(900px 500px at 110% 0%, hsl(var(--latch-lime) / 0.10), transparent 65%),
-      radial-gradient(1000px 700px at 50% 110%, hsl(var(--latch-purple-deep) / 0.35), transparent 60%);
+      radial-gradient(1100px 600px at 10% -10%, hsl(var(--latch-yellow) / 0.18), transparent 60%),
+      radial-gradient(900px 500px at 110% 0%, hsl(var(--latch-lime) / 0.14), transparent 65%),
+      radial-gradient(1000px 700px at 50% 110%, hsl(var(--latch-night-deep) / 0.45), transparent 60%);
   }
 
   html {
@@ -257,7 +264,7 @@
   }
 
   ::selection {
-    background: hsl(var(--latch-lime) / 0.45);
+    background: hsl(var(--latch-yellow) / 0.55);
     color: hsl(var(--latch-night));
   }
 }
@@ -373,35 +380,36 @@
     inset: -1px;
   }
 
-  /* Latch / Unrot-inspired surface helpers --------------------------------- */
+  /* Latch surface helpers — forest + gold + sand --------------------------- */
 
-  /* Dark night surface for protection / control panels (Shield, locks, deep focus) */
+  /* Deep forest surface for protection / control panels (Shield, locks, deep focus) */
   .surface-night {
     background:
-      radial-gradient(120% 80% at 100% 0%, hsl(var(--latch-purple-deep) / 0.55), transparent 60%),
+      radial-gradient(120% 80% at 100% 0%, hsl(var(--latch-night-soft) / 0.55), transparent 60%),
       linear-gradient(160deg, hsl(var(--latch-night)) 0%, hsl(var(--latch-night-deep)) 100%);
     color: hsl(var(--latch-cream-light));
     border: 1px solid hsl(var(--latch-night-soft) / 0.9);
     box-shadow:
-      inset 0 1px 0 hsl(46 100% 96% / 0.06),
+      inset 0 1px 0 hsl(42 100% 95% / 0.06),
       0 14px 30px -16px hsl(var(--latch-night-deep) / 0.7);
   }
   .surface-night-deep {
     background:
-      radial-gradient(140% 90% at 0% 100%, hsl(var(--latch-purple-deep) / 0.45), transparent 65%),
-      linear-gradient(160deg, hsl(var(--latch-night-deep)) 0%, #050509 100%);
+      radial-gradient(140% 90% at 0% 100%, hsl(var(--latch-night-soft) / 0.45), transparent 65%),
+      linear-gradient(160deg, hsl(var(--latch-night-deep)) 0%, #060f0c 100%);
     color: hsl(var(--latch-cream-light));
-    border: 1px solid hsl(252 14% 14%);
+    border: 1px solid hsl(161 30% 14%);
     box-shadow:
-      inset 0 1px 0 hsl(46 100% 96% / 0.05),
+      inset 0 1px 0 hsl(42 100% 95% / 0.05),
       0 18px 36px -16px hsl(0 0% 0% / 0.55);
   }
+  /* "Purple" surface kept as a mid-forest accent — used on study/focus panels */
   .surface-purple {
     background:
       radial-gradient(120% 100% at 100% 0%, hsl(var(--latch-purple) / 0.45), transparent 60%),
-      linear-gradient(160deg, hsl(var(--latch-purple-deep)) 0%, hsl(257 42% 16%) 100%);
+      linear-gradient(160deg, hsl(var(--latch-purple-deep)) 0%, hsl(154 35% 22%) 100%);
     color: hsl(var(--latch-cream-light));
-    border: 1px solid hsl(var(--latch-purple) / 0.35);
+    border: 1px solid hsl(var(--latch-purple) / 0.45);
     box-shadow:
       inset 0 1px 0 hsl(var(--latch-purple-soft) / 0.18),
       0 14px 30px -14px hsl(var(--latch-purple-deep) / 0.6);
@@ -409,24 +417,24 @@
 
   /* Reward / energy accents — gradients add depth without breaking flat brand */
   .surface-lime {
-    background: linear-gradient(155deg, hsl(73 100% 70%) 0%, hsl(var(--latch-lime)) 55%, hsl(73 100% 54%) 100%);
-    color: hsl(var(--latch-night));
-    border: 1px solid hsl(76 90% 44% / 0.5);
+    background: linear-gradient(155deg, hsl(130 44% 64%) 0%, hsl(var(--latch-lime)) 55%, hsl(138 43% 48%) 100%);
+    color: hsl(var(--latch-night-deep));
+    border: 1px solid hsl(138 43% 36% / 0.5);
     box-shadow:
-      inset 0 1px 0 hsl(46 100% 96% / 0.5),
-      0 12px 26px -14px hsl(76 80% 38% / 0.55);
+      inset 0 1px 0 hsl(42 100% 95% / 0.5),
+      0 12px 26px -14px hsl(138 43% 32% / 0.55);
   }
   .surface-green {
-    background: linear-gradient(155deg, hsl(152 70% 60%) 0%, hsl(var(--latch-green)) 100%);
-    color: hsl(var(--latch-night));
-    border: 1px solid hsl(152 60% 40% / 0.5);
+    background: linear-gradient(155deg, hsl(138 45% 62%) 0%, hsl(var(--latch-green)) 100%);
+    color: hsl(var(--latch-night-deep));
+    border: 1px solid hsl(138 43% 36% / 0.5);
   }
   .surface-yellow {
     background: linear-gradient(155deg, hsl(var(--latch-yellow-soft)) 0%, hsl(var(--latch-yellow)) 100%);
-    color: hsl(var(--latch-night));
-    border: 1px solid hsl(38 90% 42% / 0.4);
+    color: hsl(var(--latch-night-deep));
+    border: 1px solid hsl(38 80% 42% / 0.55);
     box-shadow:
-      inset 0 1px 0 hsl(46 100% 96% / 0.45),
+      inset 0 1px 0 hsl(42 100% 95% / 0.45),
       0 12px 26px -14px hsl(38 80% 38% / 0.4);
   }
   .surface-cream-soft {
@@ -435,9 +443,9 @@
     border: 1px solid hsl(var(--card-border));
   }
   .surface-rose {
-    background: linear-gradient(155deg, hsl(353 90% 70%) 0%, hsl(var(--latch-rose)) 100%);
+    background: linear-gradient(155deg, hsl(1 70% 64%) 0%, hsl(var(--latch-rose)) 100%);
     color: hsl(var(--latch-cream-light));
-    border: 1px solid hsl(353 70% 42% / 0.5);
+    border: 1px solid hsl(1 60% 42% / 0.5);
   }
 
   /* Premium card — soft layered surface used across major sections */
@@ -446,14 +454,14 @@
       linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card)) 100%);
     border: 1px solid hsl(var(--card-border));
     box-shadow:
-      inset 0 1px 0 hsl(46 100% 96% / 0.55),
-      0 1px 0 hsl(252 24% 12% / 0.02),
-      0 10px 28px -18px hsl(252 24% 12% / 0.18);
+      inset 0 1px 0 hsl(42 100% 95% / 0.55),
+      0 1px 0 hsl(161 56% 13% / 0.02),
+      0 10px 28px -18px hsl(161 56% 13% / 0.18);
   }
   .dark .card-premium {
-    background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(252 26% 11%) 100%);
+    background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(161 50% 11%) 100%);
     box-shadow:
-      inset 0 1px 0 hsl(46 100% 96% / 0.04),
+      inset 0 1px 0 hsl(42 100% 95% / 0.04),
       0 18px 36px -22px hsl(0 0% 0% / 0.6);
   }
 
@@ -461,27 +469,30 @@
   .panel-inset {
     background: linear-gradient(180deg, hsl(var(--latch-cream-light)) 0%, hsl(var(--latch-cream-soft)) 100%);
     border: 1px solid hsl(var(--card-border) / 0.7);
-    box-shadow: inset 0 1px 0 hsl(46 100% 96% / 0.6);
+    box-shadow: inset 0 1px 0 hsl(42 100% 95% / 0.6);
   }
   .dark .panel-inset {
-    background: linear-gradient(180deg, hsl(252 22% 16%) 0%, hsl(252 24% 12%) 100%);
+    background: linear-gradient(180deg, hsl(161 40% 16%) 0%, hsl(161 50% 12%) 100%);
     border: 1px solid hsl(var(--border));
-    box-shadow: inset 0 1px 0 hsl(46 100% 96% / 0.04);
+    box-shadow: inset 0 1px 0 hsl(42 100% 95% / 0.04);
   }
 
   /* Halo glow for celebration / call-to-action surfaces */
-  .glow-lime { box-shadow: 0 0 0 1px hsl(76 90% 44% / 0.3), 0 18px 40px -16px hsl(76 80% 38% / 0.5); }
+  .glow-lime { box-shadow: 0 0 0 1px hsl(138 43% 36% / 0.3), 0 18px 40px -16px hsl(138 43% 32% / 0.5); }
   .glow-purple { box-shadow: 0 0 0 1px hsl(var(--latch-purple) / 0.35), 0 18px 40px -16px hsl(var(--latch-purple) / 0.45); }
   .glow-night { box-shadow: 0 18px 40px -18px hsl(var(--latch-night-deep) / 0.55); }
+  .glow-gold  { box-shadow: 0 0 0 1px hsl(38 80% 42% / 0.35), 0 18px 40px -16px hsl(38 80% 42% / 0.45); }
 
   .text-lime-reward { color: hsl(var(--latch-lime)); }
   .text-lime-deep { color: hsl(var(--latch-lime-deep)); }
   .text-green-reward { color: hsl(var(--latch-green)); }
   .text-yellow-energy { color: hsl(var(--latch-yellow)); }
+  /* "purple-unlock" is now a deep forest accent — kept for compatibility */
   .text-purple-unlock { color: hsl(var(--latch-purple)); }
   .text-cream { color: hsl(var(--latch-cream-light)); }
   .text-cream-muted { color: hsl(var(--latch-cream-light) / 0.74); }
   .text-night { color: hsl(var(--latch-night)); }
+  .text-gold { color: hsl(38 80% 42%); }
 
   .border-night { border-color: hsl(var(--latch-night)); }
   .border-purple-unlock { border-color: hsl(var(--latch-purple)); }
@@ -490,25 +501,25 @@
   /* Background mesh — global, sits behind app pages */
   .bg-mesh {
     background-image:
-      radial-gradient(60% 50% at 8% 8%, hsl(var(--latch-yellow) / 0.32), transparent 60%),
-      radial-gradient(55% 50% at 92% 12%, hsl(var(--latch-lime) / 0.30), transparent 60%),
-      radial-gradient(55% 50% at 60% 105%, hsl(var(--latch-purple) / 0.22), transparent 60%),
+      radial-gradient(60% 50% at 8% 8%, hsl(var(--latch-yellow) / 0.34), transparent 60%),
+      radial-gradient(55% 50% at 92% 12%, hsl(var(--latch-lime) / 0.26), transparent 60%),
+      radial-gradient(55% 50% at 60% 105%, hsl(var(--latch-night) / 0.16), transparent 60%),
       linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--latch-cream-soft)) 100%);
   }
   .dark .bg-mesh {
     background-image:
-      radial-gradient(60% 50% at 8% 8%, hsl(var(--latch-purple) / 0.28), transparent 60%),
-      radial-gradient(55% 50% at 92% 12%, hsl(var(--latch-lime) / 0.10), transparent 60%),
-      radial-gradient(55% 50% at 60% 105%, hsl(var(--latch-purple-deep) / 0.40), transparent 60%),
-      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(252 26% 6%) 100%);
+      radial-gradient(60% 50% at 8% 8%, hsl(var(--latch-yellow) / 0.22), transparent 60%),
+      radial-gradient(55% 50% at 92% 12%, hsl(var(--latch-lime) / 0.14), transparent 60%),
+      radial-gradient(55% 50% at 60% 105%, hsl(var(--latch-night-deep) / 0.45), transparent 60%),
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(161 56% 7%) 100%);
   }
 
   /* Brand chip gradient — for the small "your phone coach" pill */
   .chip-brand {
-    background: linear-gradient(135deg, hsl(var(--latch-night)) 0%, hsl(257 30% 22%) 100%);
-    color: hsl(var(--latch-lime));
+    background: linear-gradient(135deg, hsl(var(--latch-night)) 0%, hsl(154 35% 26%) 100%);
+    color: hsl(var(--latch-yellow));
     border: 1px solid hsl(var(--latch-night-soft));
-    box-shadow: inset 0 1px 0 hsl(46 100% 96% / 0.06);
+    box-shadow: inset 0 1px 0 hsl(42 100% 95% / 0.06);
   }
 
   /* Focus ring helper for clickable surfaces */
@@ -516,6 +527,6 @@
     outline: none;
   }
   .focus-ring:focus-visible {
-    box-shadow: 0 0 0 3px hsl(var(--latch-lime) / 0.55), 0 0 0 5px hsl(var(--latch-night) / 0.6);
+    box-shadow: 0 0 0 3px hsl(var(--latch-yellow) / 0.65), 0 0 0 5px hsl(var(--latch-night) / 0.7);
   }
 }

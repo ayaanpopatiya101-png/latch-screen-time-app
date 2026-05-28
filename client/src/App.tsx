@@ -202,10 +202,10 @@ function Logo() {
   return (
     <div className="flex items-center gap-3" data-testid="brand-logo">
       <div className="flex h-11 w-11 items-center justify-center rounded-2xl surface-night glow-night">
-        <svg aria-label="Latch logo" viewBox="0 0 48 48" className="h-7 w-7 text-lime-reward drop-shadow-[0_0_6px_hsl(73_100%_60%/0.55)]" fill="none">
+        <svg aria-label="Latch logo" viewBox="0 0 48 48" className="h-7 w-7 text-yellow-energy drop-shadow-[0_0_6px_hsl(42_100%_70%/0.55)]" fill="none">
           <path d="M15 26V15.5C15 10.25 19.25 6 24.5 6S34 10.25 34 15.5V26" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
           <path d="M11 23h26v13a7 7 0 0 1-7 7H18a7 7 0 0 1-7-7V23Z" fill="currentColor" />
-          <circle cx="24" cy="32" r="3" fill="#1b1828" />
+          <circle cx="24" cy="32" r="3" fill="#0F3329" />
         </svg>
       </div>
       <div>
@@ -228,8 +228,8 @@ function Mascot({ mood = "happy", message, compact = false }: { mood?: "happy" |
         <svg viewBox="0 0 96 96" className={compact ? "h-14 w-14" : "h-24 w-24"} aria-label="Lumi mascot">
           <defs>
             <linearGradient id="lumiBody" x1="15" x2="84" y1="12" y2="82">
-              <stop stopColor="#D8F16A" />
-              <stop offset="1" stopColor="#7DE2C2" />
+              <stop stopColor="#FFD166" />
+              <stop offset="1" stopColor="#7BCB8A" />
             </linearGradient>
           </defs>
           <path d="M25 45V30c0-12 9-21 23-21s23 9 23 21v15" fill="none" stroke="#102F2D" strokeWidth="8" strokeLinecap="round" />
@@ -1735,7 +1735,7 @@ function Home() {
 
           <AnimatePresence mode="wait">
             {shieldOpen ? (
-              <motion.div key={shieldStep} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="mt-6 rounded-[1.5rem] surface-night p-5 shadow-[0_8px_24px_-12px_rgba(27,24,40,0.55)]" data-testid="panel-shield-flow">
+              <motion.div key={shieldStep} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="mt-6 rounded-[1.5rem] surface-night p-5 shadow-[0_8px_24px_-12px_rgba(15,51,41,0.55)]" data-testid="panel-shield-flow">
                 {shieldStep === "pause" && (
                   <div>
                     <div className="flex items-center justify-between gap-3">
@@ -1820,7 +1820,7 @@ function Home() {
             </div>
             <Button type="button" onClick={startFocus} disabled={focusActive} data-testid="button-start-focus-panel">{focusActive ? "Running" : "Start 25 min"}</Button>
           </div>
-          <div className={`mt-6 rounded-[1.5rem] p-5 ${focusActive ? "surface-purple shadow-[0_8px_24px_-12px_rgba(122,77,255,0.55)]" : "bg-background"}`}>
+          <div className={`mt-6 rounded-[1.5rem] p-5 ${focusActive ? "surface-purple shadow-[0_8px_24px_-12px_rgba(36,91,69,0.55)]" : "bg-background"}`}>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className={`text-sm font-bold ${focusActive ? "text-cream" : ""}`}>Study sprint</p>

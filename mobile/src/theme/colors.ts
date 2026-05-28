@@ -1,26 +1,34 @@
+// Forest + gold + sand palette. Key names retained (lime/purple/night) for
+// backwards-compatibility with components that import them by name; only the
+// hex values are remapped so the mobile prototype matches the web app's look.
 export const palette = {
-  cream: '#F6EFE2',
-  creamSoft: '#FBF5EA',
-  creamWarm: '#EFE5D1',
-  night: '#1B1A1F',
-  nightSoft: '#26242C',
-  nightPanel: '#2F2D36',
-  lime: '#C8FF5E',
-  limeDeep: '#A6E232',
-  purple: '#7B5BFF',
-  purpleDeep: '#5A3CE6',
-  yellow: '#F7D24A',
-  yellowDeep: '#E2B71F',
-  coral: '#FF7E6B',
-  ink: '#141318',
-  textPrimary: '#1B1A1F',
-  textInverse: '#FBF5EA',
-  textMuted: '#5F5A52',
-  textMutedDark: '#A09BA7',
-  divider: '#E5DDCB',
-  dividerDark: '#3A3742',
-  success: '#3FB47B',
-  warn: '#E2A03F',
+  cream: '#FAF0D7',
+  creamSoft: '#FFF7E8',
+  creamWarm: '#F3E4C2',
+  night: '#0F3329',
+  nightSoft: '#174C3C',
+  nightPanel: '#245B45',
+  // "lime" is now leaf green for positive / reward actions
+  lime: '#5BBE7D',
+  limeDeep: '#3F9D5E',
+  // "purple" is now a deeper forest accent used for focus / locked panels
+  purple: '#245B45',
+  purpleDeep: '#0F3329',
+  // gold / yellow for energy, credits, streaks
+  yellow: '#FFD166',
+  yellowDeep: '#E9A93A',
+  // soft terracotta replaces the old coral so it still reads as alert without
+  // clashing with the forest palette
+  coral: '#D9534F',
+  ink: '#0B2620',
+  textPrimary: '#0F3329',
+  textInverse: '#FFF7E8',
+  textMuted: '#4B5F55',
+  textMutedDark: '#A8C5B5',
+  divider: '#E8D9B8',
+  dividerDark: '#27433A',
+  success: '#5BBE7D',
+  warn: '#E9A93A',
   danger: '#D9534F',
 } as const;
 
@@ -28,7 +36,7 @@ export type PaletteKey = keyof typeof palette;
 
 export const gradients = {
   limePower: [palette.lime, palette.limeDeep] as const,
-  purpleFocus: [palette.purple, palette.purpleDeep] as const,
+  purpleFocus: [palette.nightSoft, palette.purpleDeep] as const,
   yellowEnergy: [palette.yellow, palette.yellowDeep] as const,
   nightPanel: [palette.nightSoft, palette.nightPanel] as const,
   cream: [palette.creamSoft, palette.creamWarm] as const,

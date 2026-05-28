@@ -58,8 +58,8 @@ export function LumiAvatar({ mood = "happy", size = "md" }: { mood?: LumiMood; s
       <svg viewBox="0 0 96 96" className={sizes[size]} aria-label="Lumi mascot">
         <defs>
           <linearGradient id="lumiBodyShared" x1="15" x2="84" y1="12" y2="82">
-            <stop stopColor="#D8F16A" />
-            <stop offset="1" stopColor="#7DE2C2" />
+            <stop stopColor="#FFD166" />
+            <stop offset="1" stopColor="#7BCB8A" />
           </linearGradient>
         </defs>
         <path
@@ -76,10 +76,10 @@ export function LumiAvatar({ mood = "happy", size = "md" }: { mood?: LumiMood; s
         <path d="M79 51c8 1 13 5 13 11 0 7-6 11-13 11" stroke="#102F2D" strokeWidth="5" strokeLinecap="round" fill="none" />
         {mood === "celebrate" && (
           <>
-            <circle cx="12" cy="14" r="2.4" fill="#F2E14A" />
-            <circle cx="84" cy="10" r="2" fill="#B388FF" />
-            <circle cx="88" cy="42" r="1.8" fill="#F2E14A" />
-            <circle cx="6" cy="40" r="1.8" fill="#7DE2C2" />
+            <circle cx="12" cy="14" r="2.4" fill="#FFD166" />
+            <circle cx="84" cy="10" r="2" fill="#5BBE7D" />
+            <circle cx="88" cy="42" r="1.8" fill="#E9A93A" />
+            <circle cx="6" cy="40" r="1.8" fill="#7BCB8A" />
           </>
         )}
       </svg>
