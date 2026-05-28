@@ -3,14 +3,21 @@ import {
   accountabilityBuddies,
   accounts,
   appEvents,
+  autoplayChecklist,
+  batchWindows,
+  bedroomChargerLog,
   blockRules,
   creditLedger,
+  detoxPlans,
+  feedAuditEvents,
   focusPlans,
   focusSessions,
+  fomoReframeLog,
   habitPatterns,
   profiles,
   protectedApps,
   quests,
+  reflectionLog,
 } from '@shared/schema';
 import type {
   AccountabilityBuddyRow,
@@ -19,13 +26,19 @@ import type {
   AccountProfile,
   AppEvent,
   AppEventInput,
+  AutoplayChecklistRow,
+  BatchWindowRow,
+  BedroomChargerLogRow,
   BlockRule,
   CreditEarnInput,
   CreditLedgerRow,
   CreditSpendInput,
+  DetoxPlanRow,
+  FeedAuditEventRow,
   FocusPlanInput,
   FocusPlanRow,
   FocusSession,
+  FomoReframeLogRow,
   HabitPatternRow,
   InsertFocusSession,
   InsertProfile,
@@ -35,6 +48,7 @@ import type {
   ProfilePatch,
   ProtectedApp,
   Quest,
+  ReflectionLogRow,
   SafeAccount,
   SafeProfile,
 } from '@shared/schema';
@@ -162,6 +176,79 @@ sqlite.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_buddies_account
     ON accountability_buddies(account_id);
+  CREATE TABLE IF NOT EXISTS batch_windows (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    start_minute INTEGER NOT NULL,
+    end_minute INTEGER NOT NULL,
+    label TEXT NOT NULL DEFAULT 'Check-in',
+    apps TEXT NOT NULL DEFAULT '[]',
+    enabled INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_batch_windows_account
+    ON batch_windows(account_id);
+  CREATE TABLE IF NOT EXISTS detox_plans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    framework TEXT NOT NULL,
+    started_at TEXT NOT NULL,
+    banned_apps TEXT NOT NULL DEFAULT '[]',
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_detox_plans_account
+    ON detox_plans(account_id);
+  CREATE TABLE IF NOT EXISTS feed_audit_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    action TEXT NOT NULL,
+    platform TEXT NOT NULL,
+    count INTEGER NOT NULL,
+    note TEXT NOT NULL DEFAULT '',
+    credits_awarded INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_feed_audit_account
+    ON feed_audit_events(account_id, created_at);
+  CREATE TABLE IF NOT EXISTS bedroom_charger_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    charged_outside_bedroom INTEGER NOT NULL,
+    bedtime_iso TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_bedroom_charger_account
+    ON bedroom_charger_log(account_id, created_at);
+  CREATE TABLE IF NOT EXISTS autoplay_checklist (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    toggles TEXT NOT NULL DEFAULT '[]',
+    score_percent INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_autoplay_checklist_account
+    ON autoplay_checklist(account_id);
+  CREATE TABLE IF NOT EXISTS reflection_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    app_name TEXT NOT NULL,
+    intention TEXT NOT NULL,
+    breath_seconds INTEGER NOT NULL DEFAULT 8,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_reflection_log_account
+    ON reflection_log(account_id, created_at);
+  CREATE TABLE IF NOT EXISTS fomo_reframe_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id),
+    app_name TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    bypassed INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_fomo_log_account
+    ON fomo_reframe_log(account_id, created_at);
 `);
 
 // Lightweight migration: older databases predate the new account_profiles
@@ -860,6 +947,242 @@ export class DatabaseStorage implements IStorage {
       })
       .returning()
       .get();
+  }
+
+  // ----------------------------------------------------------------------
+  // Anti-addiction storage methods
+  // ----------------------------------------------------------------------
+
+  async listBatchWindows(accountId: number): Promise<BatchWindowRow[]> {
+    return db.select().from(batchWindows).where(eq(batchWindows.accountId, accountId)).all();
+  }
+
+  async replaceBatchWindows(
+    accountId: number,
+    windows: Array<{ startMinute: number; endMinute: number; label: string }>,
+    apps: string[],
+  ): Promise<BatchWindowRow[]> {
+    const now = new Date().toISOString();
+    db.delete(batchWindows).where(eq(batchWindows.accountId, accountId)).run();
+    for (const w of windows) {
+      db.insert(batchWindows)
+        .values({
+          accountId,
+          startMinute: w.startMinute,
+          endMinute: w.endMinute,
+          label: w.label,
+          apps: JSON.stringify(apps),
+          enabled: true,
+          createdAt: now,
+        })
+        .run();
+    }
+    return this.listBatchWindows(accountId);
+  }
+
+  async listDetoxPlans(accountId: number): Promise<DetoxPlanRow[]> {
+    return db.select().from(detoxPlans).where(eq(detoxPlans.accountId, accountId)).all();
+  }
+
+  async createDetoxPlan(input: {
+    accountId: number;
+    framework: string;
+    startedAt: string;
+    bannedApps: string[];
+  }): Promise<DetoxPlanRow> {
+    const now = new Date().toISOString();
+    // Deactivate any prior active plans first so only one is current.
+    db.update(detoxPlans)
+      .set({ active: false })
+      .where(eq(detoxPlans.accountId, input.accountId))
+      .run();
+    return db
+      .insert(detoxPlans)
+      .values({
+        accountId: input.accountId,
+        framework: input.framework,
+        startedAt: input.startedAt,
+        bannedApps: JSON.stringify(input.bannedApps),
+        active: true,
+        createdAt: now,
+      })
+      .returning()
+      .get();
+  }
+
+  async endDetoxPlan(planId: number): Promise<boolean> {
+    const existing = db.select().from(detoxPlans).where(eq(detoxPlans.id, planId)).get();
+    if (!existing) return false;
+    db.update(detoxPlans).set({ active: false }).where(eq(detoxPlans.id, planId)).run();
+    return true;
+  }
+
+  async recordFeedAudit(input: {
+    accountId: number;
+    action: string;
+    platform: string;
+    count: number;
+    note: string;
+    creditsAwarded: number;
+  }): Promise<FeedAuditEventRow> {
+    const now = new Date().toISOString();
+    return db
+      .insert(feedAuditEvents)
+      .values({
+        accountId: input.accountId,
+        action: input.action,
+        platform: input.platform,
+        count: input.count,
+        note: input.note,
+        creditsAwarded: input.creditsAwarded,
+        createdAt: now,
+      })
+      .returning()
+      .get();
+  }
+
+  async listFeedAuditEvents(accountId: number, limit = 30): Promise<FeedAuditEventRow[]> {
+    return db
+      .select()
+      .from(feedAuditEvents)
+      .where(eq(feedAuditEvents.accountId, accountId))
+      .orderBy(desc(feedAuditEvents.id))
+      .limit(limit)
+      .all();
+  }
+
+  async recordBedroomCharger(input: {
+    accountId: number;
+    chargedOutsideBedroom: boolean;
+    bedtimeIso: string;
+  }): Promise<BedroomChargerLogRow> {
+    const now = new Date().toISOString();
+    return db
+      .insert(bedroomChargerLog)
+      .values({
+        accountId: input.accountId,
+        chargedOutsideBedroom: input.chargedOutsideBedroom,
+        bedtimeIso: input.bedtimeIso,
+        createdAt: now,
+      })
+      .returning()
+      .get();
+  }
+
+  async listBedroomChargerLog(accountId: number, limit = 30): Promise<BedroomChargerLogRow[]> {
+    return db
+      .select()
+      .from(bedroomChargerLog)
+      .where(eq(bedroomChargerLog.accountId, accountId))
+      .orderBy(desc(bedroomChargerLog.id))
+      .limit(limit)
+      .all();
+  }
+
+  async upsertAutoplayChecklist(input: {
+    accountId: number;
+    toggles: Array<{ key: string; done: boolean }>;
+    scorePercent: number;
+  }): Promise<AutoplayChecklistRow> {
+    const now = new Date().toISOString();
+    const existing = db
+      .select()
+      .from(autoplayChecklist)
+      .where(eq(autoplayChecklist.accountId, input.accountId))
+      .get();
+    if (existing) {
+      db.update(autoplayChecklist)
+        .set({
+          toggles: JSON.stringify(input.toggles),
+          scorePercent: input.scorePercent,
+          updatedAt: now,
+        })
+        .where(eq(autoplayChecklist.accountId, input.accountId))
+        .run();
+      return db
+        .select()
+        .from(autoplayChecklist)
+        .where(eq(autoplayChecklist.accountId, input.accountId))
+        .get() as AutoplayChecklistRow;
+    }
+    return db
+      .insert(autoplayChecklist)
+      .values({
+        accountId: input.accountId,
+        toggles: JSON.stringify(input.toggles),
+        scorePercent: input.scorePercent,
+        updatedAt: now,
+      })
+      .returning()
+      .get();
+  }
+
+  async getAutoplayChecklist(accountId: number): Promise<AutoplayChecklistRow | undefined> {
+    return db
+      .select()
+      .from(autoplayChecklist)
+      .where(eq(autoplayChecklist.accountId, accountId))
+      .get();
+  }
+
+  async recordReflection(input: {
+    accountId: number;
+    appName: string;
+    intention: string;
+    breathSeconds: number;
+  }): Promise<ReflectionLogRow> {
+    const now = new Date().toISOString();
+    return db
+      .insert(reflectionLog)
+      .values({
+        accountId: input.accountId,
+        appName: input.appName,
+        intention: input.intention,
+        breathSeconds: input.breathSeconds,
+        createdAt: now,
+      })
+      .returning()
+      .get();
+  }
+
+  async listReflections(accountId: number, limit = 30): Promise<ReflectionLogRow[]> {
+    return db
+      .select()
+      .from(reflectionLog)
+      .where(eq(reflectionLog.accountId, accountId))
+      .orderBy(desc(reflectionLog.id))
+      .limit(limit)
+      .all();
+  }
+
+  async recordFomoReframe(input: {
+    accountId: number;
+    appName: string;
+    answer: string;
+    bypassed: boolean;
+  }): Promise<FomoReframeLogRow> {
+    const now = new Date().toISOString();
+    return db
+      .insert(fomoReframeLog)
+      .values({
+        accountId: input.accountId,
+        appName: input.appName,
+        answer: input.answer,
+        bypassed: input.bypassed,
+        createdAt: now,
+      })
+      .returning()
+      .get();
+  }
+
+  async listFomoReframes(accountId: number, limit = 30): Promise<FomoReframeLogRow[]> {
+    return db
+      .select()
+      .from(fomoReframeLog)
+      .where(eq(fomoReframeLog.accountId, accountId))
+      .orderBy(desc(fomoReframeLog.id))
+      .limit(limit)
+      .all();
   }
 
   async seedAccountabilityBuddiesIfEmpty(accountId: number): Promise<AccountabilityBuddyRow[]> {

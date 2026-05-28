@@ -159,6 +159,86 @@ export const habitPatterns = sqliteTable("habit_patterns", {
   updatedAt: text("updated_at").notNull(),
 });
 
+// --------------------------------------------------------------------------
+// Anti-addiction tables (batch windows, detox plans, audits, charger log,
+// autoplay checklist). Each table is keyed by accountId so multi-user setups
+// stay isolated.
+// --------------------------------------------------------------------------
+
+export const batchWindows = sqliteTable("batch_windows", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  startMinute: integer("start_minute").notNull(),
+  endMinute: integer("end_minute").notNull(),
+  label: text("label").notNull().default("Check-in"),
+  apps: text("apps").notNull().default("[]"),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").notNull(),
+});
+
+export const detoxPlans = sqliteTable("detox_plans", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  framework: text("framework").notNull(),
+  startedAt: text("started_at").notNull(),
+  bannedApps: text("banned_apps").notNull().default("[]"),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").notNull(),
+});
+
+export const feedAuditEvents = sqliteTable("feed_audit_events", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  action: text("action").notNull(),
+  platform: text("platform").notNull(),
+  count: integer("count").notNull(),
+  note: text("note").notNull().default(""),
+  creditsAwarded: integer("credits_awarded").notNull().default(0),
+  createdAt: text("created_at").notNull(),
+});
+
+export const bedroomChargerLog = sqliteTable("bedroom_charger_log", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  chargedOutsideBedroom: integer("charged_outside_bedroom", { mode: "boolean" }).notNull(),
+  bedtimeIso: text("bedtime_iso").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+export const autoplayChecklist = sqliteTable("autoplay_checklist", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  toggles: text("toggles").notNull().default("[]"),
+  scorePercent: integer("score_percent").notNull().default(0),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const reflectionLog = sqliteTable("reflection_log", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  appName: text("app_name").notNull(),
+  intention: text("intention").notNull(),
+  breathSeconds: integer("breath_seconds").notNull().default(8),
+  createdAt: text("created_at").notNull(),
+});
+
+export const fomoReframeLog = sqliteTable("fomo_reframe_log", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  appName: text("app_name").notNull(),
+  answer: text("answer").notNull(),
+  bypassed: integer("bypassed", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at").notNull(),
+});
+
+export type BatchWindowRow = typeof batchWindows.$inferSelect;
+export type DetoxPlanRow = typeof detoxPlans.$inferSelect;
+export type FeedAuditEventRow = typeof feedAuditEvents.$inferSelect;
+export type BedroomChargerLogRow = typeof bedroomChargerLog.$inferSelect;
+export type AutoplayChecklistRow = typeof autoplayChecklist.$inferSelect;
+export type ReflectionLogRow = typeof reflectionLog.$inferSelect;
+export type FomoReframeLogRow = typeof fomoReframeLog.$inferSelect;
+
 export const blockRules = sqliteTable("block_rules", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   accountId: integer("account_id").notNull().references(() => accounts.id),

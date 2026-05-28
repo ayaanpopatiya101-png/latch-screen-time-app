@@ -33,6 +33,31 @@ import {
   detectPatterns,
   type PeriodType,
 } from "./habitPatterns";
+import {
+  autoplayChecklistScore,
+  autoplayChecklistSchema,
+  autoplayNextStep,
+  batchWindowSchema,
+  bedroomChargerSchema,
+  BOOKS,
+  buildAntiAddictionPlan,
+  detoxDurationDays,
+  detoxFrameworkLabel,
+  detoxPlanSchema,
+  detoxProgress,
+  feedAuditReward,
+  feedAuditSchema,
+  fomoReframeMessage,
+  fomoReframeSchema,
+  isOutsideBatchWindows,
+  minutesUntilNextWindow,
+  offlineReplacement,
+  reflectionPromptSchema,
+  reflectionQuestion,
+  sessionClockState,
+  TACTIC_CARDS,
+  tacticOfTheDay,
+} from "./antiAddiction";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -565,6 +590,324 @@ export async function registerRoutes(
     }
     const buddy = await storage.createAccountabilityBuddy(parsed.data);
     res.status(201).json({ buddy });
+  });
+
+  // ------------------------------------------------------------------
+  // Anti-Addiction routes — counters specific psychology tactics social
+  // platforms use. Each route maps to one or more tactics. See
+  // server/antiAddiction.ts for the full tactic-by-tactic reference.
+  // ------------------------------------------------------------------
+
+  // Static reference: tactic cards + recommended books. No DB call so this is
+  // safe to call frequently from the client.
+  app.get("/api/anti-addiction/reference", (_req, res) => {
+    res.json({ tactics: TACTIC_CARDS, books: BOOKS });
+  });
+
+  // Personalized plan: tactic-of-the-day, reflection question, recommended
+  // detox framework, quick wins. Driven by the user's stated screen-time
+  // hours and hardest time of day.
+  app.get("/api/anti-addiction/plan/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const account = await storage.getAccountProfile(id);
+    if (!account) {
+      res.status(404).json({ message: "Account not found." });
+      return;
+    }
+    const plan = buildAntiAddictionPlan({
+      currentHours: account.profile.currentHours,
+      hardestTime: account.profile.hardestTime,
+    });
+    res.json({ plan });
+  });
+
+  // ---------- Batch windows: counters variable rewards ----------
+  app.get("/api/batch-windows/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const windows = await storage.listBatchWindows(id);
+    const now = new Date();
+    const minuteOfDay = now.getHours() * 60 + now.getMinutes();
+    const simple = windows.map((w) => ({
+      startMinute: w.startMinute,
+      endMinute: w.endMinute,
+      label: w.label,
+    }));
+    res.json({
+      windows,
+      outsideAllWindows: isOutsideBatchWindows(minuteOfDay, simple),
+      minutesUntilNext: minutesUntilNextWindow(minuteOfDay, simple),
+    });
+  });
+
+  app.post("/api/batch-windows", async (req, res) => {
+    const parsed = batchWindowSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid batch windows", errors: parsed.error.flatten() });
+      return;
+    }
+    const windows = await storage.replaceBatchWindows(
+      parsed.data.accountId,
+      parsed.data.windows.map((w) => ({
+        startMinute: w.startMinute,
+        endMinute: w.endMinute,
+        label: w.label,
+      })),
+      parsed.data.apps,
+    );
+    res.status(201).json({ windows });
+  });
+
+  // ---------- Pre-open reflection: counters notifications + autopilot ----------
+  app.post("/api/reflection", async (req, res) => {
+    const parsed = reflectionPromptSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid reflection", errors: parsed.error.flatten() });
+      return;
+    }
+    const entry = await storage.recordReflection(parsed.data);
+    const now = new Date();
+    res.status(201).json({
+      entry,
+      // Give the user back something useful: a question tailored to the hour
+      // and an offline alternative for the app they were about to open.
+      question: reflectionQuestion(now.getHours() * 60 + now.getMinutes()),
+      offlineSwap: offlineReplacement(parsed.data.appName, now.getHours()),
+    });
+  });
+
+  app.get("/api/reflection/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const log = await storage.listReflections(id);
+    res.json({ log });
+  });
+
+  // ---------- Detox plans: counters dopamine-hijacked baseline ----------
+  app.get("/api/detox-plans/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const plans = await storage.listDetoxPlans(id);
+    const enriched = plans.map((p) => ({
+      ...p,
+      label: detoxFrameworkLabel(p.framework as any),
+      durationDays: detoxDurationDays(p.framework as any),
+      progress: detoxProgress(p.startedAt, p.framework as any),
+    }));
+    res.json({ plans: enriched });
+  });
+
+  app.post("/api/detox-plans", async (req, res) => {
+    const parsed = detoxPlanSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid detox plan", errors: parsed.error.flatten() });
+      return;
+    }
+    const plan = await storage.createDetoxPlan(parsed.data);
+    res.status(201).json({
+      plan: {
+        ...plan,
+        label: detoxFrameworkLabel(plan.framework as any),
+        durationDays: detoxDurationDays(plan.framework as any),
+        progress: detoxProgress(plan.startedAt, plan.framework as any),
+      },
+    });
+  });
+
+  app.delete("/api/detox-plans/:id", async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid plan id." });
+      return;
+    }
+    const ok = await storage.endDetoxPlan(id);
+    if (!ok) {
+      res.status(404).json({ message: "Plan not found." });
+      return;
+    }
+    res.json({ ok: true });
+  });
+
+  // ---------- Feed audit: counters personalization algorithms ----------
+  app.post("/api/feed-audit", async (req, res) => {
+    const parsed = feedAuditSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid feed audit", errors: parsed.error.flatten() });
+      return;
+    }
+    const award = feedAuditReward(parsed.data.count);
+    const entry = await storage.recordFeedAudit({
+      accountId: parsed.data.accountId,
+      action: parsed.data.action,
+      platform: parsed.data.platform,
+      count: parsed.data.count,
+      note: parsed.data.note ?? "",
+      creditsAwarded: award,
+    });
+    // Reward the work — feed audits are tangible and effortful.
+    let creditEntry = null as null | Awaited<ReturnType<typeof storage.earnCredits>>;
+    if (award > 0) {
+      try {
+        creditEntry = await storage.earnCredits({
+          accountId: parsed.data.accountId,
+          source: "friend",
+          amount: award,
+          note: `Feed audit: ${parsed.data.action} ${parsed.data.count} on ${parsed.data.platform}`,
+        });
+      } catch {
+        // Ignore credit award errors (e.g. account missing); audit still saved.
+      }
+    }
+    res.status(201).json({ entry, creditsAwarded: award, account: creditEntry?.account });
+  });
+
+  app.get("/api/feed-audit/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const events = await storage.listFeedAuditEvents(id);
+    res.json({ events });
+  });
+
+  // ---------- Bedroom charger: counters late-night scroll ----------
+  app.post("/api/bedroom-charger", async (req, res) => {
+    const parsed = bedroomChargerSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid charger check-in", errors: parsed.error.flatten() });
+      return;
+    }
+    const entry = await storage.recordBedroomCharger(parsed.data);
+    // Reward the keep-it-out-of-the-bedroom pledge. Small but consistent.
+    let creditEntry = null as null | Awaited<ReturnType<typeof storage.earnCredits>>;
+    if (parsed.data.chargedOutsideBedroom) {
+      try {
+        creditEntry = await storage.earnCredits({
+          accountId: parsed.data.accountId,
+          source: "daily_goal",
+          amount: 4,
+          note: "Charged phone outside the bedroom",
+        });
+      } catch {
+        // Ignore; entry still saved.
+      }
+    }
+    res.status(201).json({ entry, account: creditEntry?.account });
+  });
+
+  app.get("/api/bedroom-charger/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const log = await storage.listBedroomChargerLog(id);
+    // Compute current streak: count consecutive 'yes' entries from newest.
+    let streak = 0;
+    for (const row of log) {
+      if (row.chargedOutsideBedroom) streak += 1;
+      else break;
+    }
+    res.json({ log, currentStreak: streak });
+  });
+
+  // ---------- Autoplay-off checklist: counters autoplay rabbit holes ----------
+  app.get("/api/autoplay-checklist/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const row = await storage.getAutoplayChecklist(id);
+    if (!row) {
+      res.json({ checklist: null, nextStep: null });
+      return;
+    }
+    let toggles: Array<{ key: any; done: boolean }> = [];
+    try {
+      toggles = JSON.parse(row.toggles) ?? [];
+    } catch {
+      toggles = [];
+    }
+    res.json({
+      checklist: { ...row, toggles },
+      nextStep: autoplayNextStep(toggles),
+    });
+  });
+
+  app.post("/api/autoplay-checklist", async (req, res) => {
+    const parsed = autoplayChecklistSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid checklist", errors: parsed.error.flatten() });
+      return;
+    }
+    const score = autoplayChecklistScore(parsed.data.toggles);
+    const row = await storage.upsertAutoplayChecklist({
+      accountId: parsed.data.accountId,
+      toggles: parsed.data.toggles,
+      scorePercent: score,
+    });
+    res.status(201).json({
+      checklist: { ...row, toggles: parsed.data.toggles },
+      nextStep: autoplayNextStep(parsed.data.toggles),
+      scorePercent: score,
+    });
+  });
+
+  // ---------- FOMO reframe: counters confirmshaming and engineered FOMO ----------
+  app.post("/api/fomo-reframe", async (req, res) => {
+    const parsed = fomoReframeSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: "Invalid reframe", errors: parsed.error.flatten() });
+      return;
+    }
+    const reframe = fomoReframeMessage(parsed.data.answer, parsed.data.appName);
+    const entry = await storage.recordFomoReframe({
+      accountId: parsed.data.accountId,
+      appName: parsed.data.appName,
+      answer: parsed.data.answer,
+      bypassed: reframe.allowBypass,
+    });
+    res.status(201).json({ entry, ...reframe });
+  });
+
+  // ---------- Session clock: counters hidden time awareness ----------
+  app.get("/api/session-clock", (req, res) => {
+    const opened = String(req.query.openedAt ?? "");
+    if (!opened) {
+      res.status(400).json({ message: "openedAt query param required." });
+      return;
+    }
+    res.json(sessionClockState(opened));
+  });
+
+  // ---------- Tactic of the day (deterministic) ----------
+  app.get("/api/anti-addiction/tactic/:accountId", async (req, res) => {
+    const id = Number(req.params.accountId);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ message: "Invalid account id." });
+      return;
+    }
+    const account = await storage.getAccountProfile(id);
+    if (!account) {
+      res.status(404).json({ message: "Account not found." });
+      return;
+    }
+    res.json({ tactic: tacticOfTheDay(account.profile.hardestTime) });
   });
 
   return httpServer;

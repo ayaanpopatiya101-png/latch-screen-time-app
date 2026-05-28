@@ -1,8 +1,24 @@
-# Latch — *Hooked on Real Life.*
+# Latch — Hooked on Real Life
 
-Latch uses the same psychology social media uses on you — to give you
-back your time. Friction-before-scroll, daily quests, and offline swaps,
-all wrapped in a warm, mascot-led UI.
+Latch is a screen-time app built around a simple inversion: social
+platforms use behavioural psychology to keep you scrolling, so Latch
+uses the same playbook in reverse to give you your time back. Every
+feature in the repo is mapped to a documented persuasion tactic and a
+countermove drawn from clinical and academic research.
+
+The app ships three layers of defense:
+
+1. **Friction at the moment of use** — shields, delays, focus plans,
+   and a transition "bridge" between phone-mode and real-life mode.
+2. **A behavioural economy** — earn Latch Credits by doing offline
+   things, spend them on capped app windows, watch a brain-energy
+   meter rise and fall with your choices.
+3. **An anti-addiction engine** — a research-backed module that
+   targets the ten specific tactics platforms use to hook attention
+   (variable rewards, infinite scroll, autoplay, FOMO, notifications,
+   re-engagement emails, hidden time awareness, personalized feeds,
+   confirmshaming, dopamine-hijacked social signals). See the
+   [Anti-Addiction Engine](#anti-addiction-engine) section below.
 
 This repository now contains three parts:
 
@@ -43,6 +59,125 @@ npm run dev
 ```
 
 Then open the URL printed by Vite.
+
+## Anti-Addiction Engine
+
+Latch's newest module is a research-backed engine that names the ten
+most-documented platform tactics, ships a counter-move for each, and
+rolls them into a single personalized plan. It lives in
+[`server/antiAddiction.ts`](./server/antiAddiction.ts) and is rendered
+in [`client/src/components/AntiAddictionPage.tsx`](./client/src/components/AntiAddictionPage.tsx)
+(reachable from the home grid as the **Reset** tile and at
+`/anti-addiction`).
+
+The engine is intentionally non-clinical. It surfaces tools and copy
+that the research literature already supports — it does not diagnose
+or treat anything.
+
+### Tactic ↔ counter-move map
+
+Every feature below is implemented as a zod-validated route, a SQLite
+table, and a card on the **Reset** page. The "source" column points to
+the primary research the counter-move borrows from.
+
+| # | Platform tactic | Counter-move shipped in Latch | Primary source |
+| --- | --- | --- | --- |
+| 1 | **Variable rewards** — unpredictable likes / pulls / refreshes condition compulsive checking. | **Batch windows** — user picks two short fixed windows (default 12:00 and 18:00, Scripps recommendation); any check outside the window is flagged and a nudge shows the minutes until the next window. | B.F. Skinner operant conditioning; Anna Lembke, *Dopamine Nation* (Stanford). |
+| 2 | **Infinite scroll** — no stopping cue, no "bottom of the page." | **Session clock** — server-stamped per-app elapsed timer with a hard "end the session" CTA every time the user opens the Reset page. | Aza Raskin (inventor of infinite scroll), public mea culpas in *60 Minutes* and *The Social Dilemma*. |
+| 3 | **Dopamine-hijacked social connection** — likes and follower counts piggy-back on real social reward circuits. | **Feed audit** — guided unfollow loop. Each unfollow / mute earns Latch Credits via `recordFeedAudit` so the user is rewarded for shrinking the surface area. | Crisis Text Line research on social-comparison harm; Sherry Turkle, *Reclaiming Conversation*. |
+| 4 | **Autoplay / rabbit holes** — the next video plays before you can decide. | **Autoplay checklist** — per-platform toggle list (autoplay off, recommendations off, history off, etc.) with a score and a "next step to flip" recommendation. | Tristan Harris / Center for Humane Technology; Adam Alter, *Irresistible*. |
+| 5 | **FOMO** — "X people posted while you were away." | **FOMO reframe** — when the user types a fear ("I'll miss the group chat"), the engine returns a reframed sentence built from the FOMO research and stores it for review. | Przybylski et al. 2013 FOMO scale; Catherine Price, *How to Break Up With Your Phone*. |
+| 6 | **Notifications** — red badges and pull-to-refresh exploit Zeigarnik. | **Notification audit + batch windows** — copy in the Reset page walks the user through killing badge counts, sounds, and lock-screen previews, then routes them to the batch-window picker. | Bluma Zeigarnik (1927); American Academy of Pediatrics problematic-media-use guidance. |
+| 7 | **Hidden time awareness** — apps obscure how long you've been inside. | **Tactic of the day** + **plan composer** — every visit shows the user a different tactic with a 30-second action and an honest "this is how long you spent" line drawn from session-clock data. | Catherine Price; Cal Newport, *Digital Minimalism*. |
+| 8 | **Personalization** — the feed gets eerily good at predicting what will keep you. | **Detox plan** — auto-recommends one of five frameworks based on current daily hours: Lembke 30-day dopamine fast (≥6h), Newport 30-day digital declutter, Price 30-day phone breakup, a 7-day primer (≥4h), or a 3-day weekend primer. State machine in `buildAntiAddictionPlan` and `detoxProgress`. | Lembke 2021; Newport 2019; Price 2018. |
+| 9 | **Confirmshaming** — "No thanks, I like wasting my time." | **Reflection prompts** — short journaled questions on cravings and triggers; reframes the user's *own* language, not the platform's, and the answers persist in `reflectionLog`. | Lembke's "radical honesty" practice; Themycenaean review of dark patterns. |
+| 10 | **Re-engagement emails / push** — "We miss you, come back." | **Bedroom charger pledge** — daily check-in that the phone slept outside the bedroom; awards credits, builds a streak, and pulls re-engagement triggers out of the most vulnerable hours. | AAP sleep / device-in-bedroom guidance; *Reclaiming Conversation*. |
+
+### Reset page
+
+The `/anti-addiction` route (also reachable from the home dashboard as
+the **Reset** tile) renders, in order:
+
+- The user's plan summary (current vs goal hours, recommended detox).
+- **Tactic of the day** — one of the ten tactic cards, rotated
+  deterministically by date so users see them all over ten days.
+- **Reflection prompt** — a one-line question with a textarea that
+  posts to `/api/reflection`.
+- **Detox plan** — start / end controls and a progress bar driven by
+  `detoxProgress(plan)`.
+- **Batch windows** — clock picker that calls `/api/batch-windows`.
+- **Bedroom charger** — daily pledge with streak.
+- **Feed audit** — counter for unfollows + mutes, rewards credits.
+- **Autoplay checklist** — per-platform toggles.
+- **Quick wins** — short, do-now actions composed by the plan engine.
+- **Tactic library** — full ten-card reference with sources.
+- **Recommended reading** — the five books the engine draws from.
+
+### API
+
+All endpoints validate input with Zod and live in
+[`server/routes.ts`](./server/routes.ts).
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET`  | `/api/anti-addiction/reference` | Static tactic cards + books for the library page. |
+| `GET`  | `/api/anti-addiction/plan/:accountId` | Composed plan (tactic of the day, detox recommendation, quick wins, reflection prompt). |
+| `GET`  | `/api/anti-addiction/tactic/:accountId` | Just today's tactic card. |
+| `GET`  | `/api/batch-windows` | List the user's check-in windows. |
+| `POST` | `/api/batch-windows` | Replace the full window set (typed by `batchWindowSchema`). |
+| `GET`  | `/api/reflection` | Recent reflection entries. |
+| `POST` | `/api/reflection` | Save one reflection (`reflectionPromptSchema`). |
+| `GET`  | `/api/detox-plans` | Active + past detox plans for the account. |
+| `POST` | `/api/detox-plans` | Start a detox plan with one of five frameworks. |
+| `DELETE` | `/api/detox-plans/:id` | End a detox plan early. |
+| `POST` | `/api/feed-audit` | Record N unfollows / mutes, earn credits (`source: "friend"`). |
+| `GET`  | `/api/feed-audit` | Recent feed-audit events. |
+| `POST` | `/api/bedroom-charger` | Daily pledge; earns credits via `source: "daily_goal"`. |
+| `GET`  | `/api/bedroom-charger` | Pledge history + current streak. |
+| `GET`  | `/api/autoplay-checklist` | Current toggle state per platform. |
+| `POST` | `/api/autoplay-checklist` | Upsert a toggle. |
+| `POST` | `/api/fomo-reframe` | Submit a fear, get a reframed sentence back; both stored. |
+| `GET`  | `/api/session-clock` | Per-app elapsed minutes for the session clock. |
+
+### Database
+
+Seven new SQLite tables are created on boot in
+[`server/storage.ts`](./server/storage.ts):
+`batch_windows`, `detox_plans`, `feed_audit_events`,
+`bedroom_charger_log`, `autoplay_checklist`, `reflection_log`,
+`fomo_reframe_log`. Types are exported from
+[`shared/schema.ts`](./shared/schema.ts).
+
+### Tests
+
+```bash
+npx tsx script/anti-addiction-test.ts
+```
+
+The deterministic test script covers batch-window math, detox-plan
+routing by hours, feed-audit credit formula
+(`round(2 * sqrt(unfollows) + 0.4)`), autoplay next-step recommendation,
+session-clock state, tactic-of-the-day rotation, FOMO reframe message
+shape, and full-plan composition. It exits non-zero on any failure.
+
+### Books the engine draws from
+
+All five are surfaced verbatim in the Reset page's "Recommended
+reading" card and inform the copy across the module:
+
+- Anna Lembke — *Dopamine Nation* (Stanford School of Medicine).
+- Cal Newport — *Digital Minimalism*.
+- Catherine Price — *How to Break Up With Your Phone*.
+- Adam Alter — *Irresistible*.
+- Sherry Turkle — *Reclaiming Conversation*.
+
+### What it does *not* claim
+
+The anti-addiction engine is a behaviour-design layer, not a clinical
+tool. It does not diagnose internet/social-media use disorder, does
+not replace therapy, and does not promise outcomes — it simply maps
+research-validated counter-moves to the tactics they counter and
+hands the user a way to act on them.
 
 ## Personalization engine
 

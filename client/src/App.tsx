@@ -49,6 +49,7 @@ import { AccountGate } from "@/components/AccountGate";
 import { PatternsPage } from "@/components/PatternsPage";
 import { EarnUnlockPage } from "@/components/EarnUnlockPage";
 import { FocusPlansPage } from "@/components/FocusPlansPage";
+import { AntiAddictionPage } from "@/components/AntiAddictionPage";
 import { DailyGoalCard } from "@/components/DailyGoalCard";
 import { AccountabilityLeaderboard } from "@/components/AccountabilityLeaderboard";
 import { DoomscrollNudges } from "@/components/DoomscrollNudges";
@@ -775,6 +776,7 @@ const pageLinks = [
   { label: "Focus", path: "/focus" },
   { label: "Quests", path: "/quests" },
   { label: "Crew", path: "/crew" },
+  { label: "Reset", path: "/anti-addiction" },
 ];
 
 function AppHeader({
@@ -891,7 +893,7 @@ function Home() {
   const [planError, setPlanError] = useState<string | null>(null);
   const [location, setLocation] = useLocation();
   const rawPage = location === "/" ? "home" : location.replace("/", "");
-  const currentPage = ["home", "earn", "plans", "bridge", "shield", "patterns", "swaps", "shop", "focus", "quests", "crew"].includes(rawPage) ? rawPage : "home";
+  const currentPage = ["home", "earn", "plans", "bridge", "shield", "patterns", "swaps", "shop", "focus", "quests", "crew", "anti-addiction"].includes(rawPage) ? rawPage : "home";
 
   const adaptiveAppRules = useMemo<AppRule[]>(() => {
     if (!plan) return appRules;
@@ -1662,6 +1664,7 @@ function Home() {
             ["Shop", "/shop", "Spend coins on earned rewards."],
             ["Focus", "/focus", "Run phone-free sprints."],
             ["Crew", "/crew", "Compete on time saved with friends."],
+            ["Reset", "/anti-addiction", "Research-backed tools that counter the ten ways apps hijack your attention."],
           ].map(([label, path, copy]) => (
             <button key={path} type="button" onClick={() => setLocation(path)} className="rounded-[1.5rem] card-premium p-4 text-left transition hover-elevate active-elevate-2" data-testid={`button-launch-${label.toLowerCase()}`}>
               <p className="font-display text-xl font-black">{label}</p>
@@ -1945,6 +1948,10 @@ function Home() {
       </section>}
 
       {currentPage === "patterns" && <PatternsPage accountId={account.id} />}
+
+      {currentPage === "anti-addiction" && (
+        <AntiAddictionPage account={account} onClose={() => setLocation("/")} />
+      )}
 
       {currentPage === "earn" && (
         <EarnUnlockPage
