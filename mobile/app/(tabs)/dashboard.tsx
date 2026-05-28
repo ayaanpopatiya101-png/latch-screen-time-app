@@ -17,9 +17,13 @@ export default function Dashboard() {
   return (
     <ScreenScaffold tone="cream">
       <View style={styles.headerRow}>
-        <View>
-          <Text style={styles.hi}>Hi, {user?.displayName ?? 'friend'}</Text>
-          <Text style={styles.subtitle}>Your day, designed with Lumi.</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.hi}>Go touch grass.</Text>
+          <Text style={styles.subtitle}>Warm, natural, and focused on real-world habits — for {user?.displayName ?? 'you'}.</Text>
+        </View>
+        <View style={styles.offlinePill}>
+          <View style={styles.offlineDot} />
+          <Text style={styles.offlineLabel}>Offline</Text>
         </View>
       </View>
 
@@ -49,10 +53,16 @@ export default function Dashboard() {
       </View>
 
       <Pressable onPress={() => router.push('/(tabs)/focus')} style={({ pressed }) => [styles.nextAction, pressed && { opacity: 0.88 }]}>
-        <Text style={styles.nextLabel}>NEXT ACTION</Text>
-        <Text style={styles.nextTitle}>Start {nextFocus.title}</Text>
+        <Text style={styles.nextLabel}>START OFFLINE QUEST</Text>
+        <Text style={styles.nextTitle}>{nextFocus.title}</Text>
         <Text style={styles.nextWindow}>{nextFocus.window}</Text>
       </Pressable>
+
+      <View style={styles.paletteRow}>
+        {[palette.night, palette.lime, palette.yellow, palette.creamSoft].map((c) => (
+          <View key={c} style={[styles.paletteDot, { backgroundColor: c }]} />
+        ))}
+      </View>
     </ScreenScaffold>
   );
 }
@@ -80,7 +90,33 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     ...shadows.cardLifted,
   },
-  nextLabel: { ...type.caption, color: palette.lime },
+  nextLabel: { ...type.caption, color: palette.yellow, letterSpacing: 1.4 },
   nextTitle: { ...type.h2, color: palette.textInverse, marginTop: spacing.xs },
   nextWindow: { ...type.body, color: palette.textMutedDark, marginTop: 2 },
+  offlinePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: palette.creamSoft,
+    borderWidth: 1,
+    borderColor: palette.divider,
+  },
+  offlineDot: { width: 6, height: 6, borderRadius: 999, backgroundColor: palette.night, opacity: 0.55 },
+  offlineLabel: { ...type.caption, color: palette.textPrimary, letterSpacing: 1.2 },
+  paletteRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  paletteDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(15,51,41,0.12)',
+  },
 });

@@ -201,16 +201,22 @@ function formatHours(hours: number) {
 function Logo() {
   return (
     <div className="flex items-center gap-3" data-testid="brand-logo">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl surface-night glow-night">
-        <svg aria-label="Latch logo" viewBox="0 0 48 48" className="h-7 w-7 text-yellow-energy drop-shadow-[0_0_6px_hsl(42_100%_70%/0.55)]" fill="none">
+      <div
+        className="flex h-11 w-11 items-center justify-center rounded-[1.1rem] border border-[hsl(var(--latch-night))]/45 shadow-[0_8px_18px_-10px_hsl(var(--latch-night-deep)/0.55),inset_0_1px_0_hsl(42_100%_95%/0.4)]"
+        style={{
+          background:
+            "linear-gradient(150deg, hsl(var(--latch-night)) 0%, hsl(var(--latch-night-soft)) 55%, hsl(var(--latch-yellow)) 130%)",
+        }}
+      >
+        <svg aria-label="Latch logo" viewBox="0 0 48 48" className="h-6 w-6 text-[hsl(var(--latch-yellow))] drop-shadow-[0_0_6px_hsl(42_100%_70%/0.55)]" fill="none">
           <path d="M15 26V15.5C15 10.25 19.25 6 24.5 6S34 10.25 34 15.5V26" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
           <path d="M11 23h26v13a7 7 0 0 1-7 7H18a7 7 0 0 1-7-7V23Z" fill="currentColor" />
           <circle cx="24" cy="32" r="3" fill="#0F3329" />
         </svg>
       </div>
       <div>
-        <p className="font-display text-lg font-extrabold leading-none tracking-tight">Latch</p>
-        <p className="text-xs font-medium text-muted-foreground">Hooked on real life</p>
+        <p className="font-display text-lg font-extrabold leading-none tracking-tight text-night">Latch</p>
+        <p className="text-[11px] font-semibold text-muted-foreground">Hooked on real life</p>
       </div>
     </div>
   );
@@ -784,12 +790,25 @@ function AppHeader({
 }) {
   const [location, setLocation] = useLocation();
 
+  const isOnline = Boolean(account?.profile.appleConnected);
   return (
     <header className="sticky top-0 z-50 border-b border-[hsl(var(--latch-night))]/10 bg-[hsl(var(--latch-cream-light))]/82 backdrop-blur-xl supports-[backdrop-filter]:bg-[hsl(var(--latch-cream-light))]/72">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <button type="button" onClick={() => setLocation("/")} className="text-left" data-testid="button-home-logo">
-          <Logo />
-        </button>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={() => setLocation("/")} className="text-left" data-testid="button-home-logo">
+            <Logo />
+          </button>
+          <span
+            className="hidden items-center gap-1.5 rounded-full border border-[hsl(var(--latch-night))]/12 bg-[hsl(var(--latch-cream-light))] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-night shadow-[inset_0_1px_0_hsl(42_100%_95%/0.6)] sm:inline-flex"
+            data-testid="pill-connection-status"
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${isOnline ? "bg-[hsl(var(--latch-lime))]" : "bg-[hsl(var(--latch-night))]/45"}`}
+              aria-hidden="true"
+            />
+            {isOnline ? "Live" : "Offline"}
+          </span>
+        </div>
         <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
           {pageLinks.map((item) => (
             <button
@@ -1312,59 +1331,193 @@ function Home() {
       <AppHeader theme={theme} setTheme={setTheme} account={account} onLogout={handleLogout} />
 
       {currentPage === "home" && <section className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-10">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} className="rounded-[2rem] card-premium p-5 sm:p-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="chip-brand rounded-full px-3 py-1 text-xs font-black uppercase tracking-[0.18em]" data-testid="text-product-tagline">
-              your phone coach
-            </span>
-            <span className="text-sm font-medium text-muted-foreground">Made for {profile.name || "you"}</span>
-          </div>
-          <div className="mt-7 grid gap-5 lg:grid-cols-[1fr_auto]">
-            <div className="max-w-2xl">
-              <h1 className="font-display text-[2rem] font-extrabold leading-none tracking-tight sm:text-[2.6rem]" data-testid="text-hero-title">
-                Make your phone easier to control.
-              </h1>
-              <p className="mt-4 text-base leading-7 text-muted-foreground" data-testid="text-hero-description">
-                Lumi learned that your goal is {formatHours(profile.goalHours)} a day. Latch now adds friendly friction, rewards, and reminders around your hardest moments.
-              </p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative overflow-hidden rounded-[2.5rem] card-premium p-5 sm:p-7"
+        >
+          {/* Soft green glow blob — top right */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full opacity-70 blur-3xl"
+            style={{
+              background:
+                "radial-gradient(circle, hsl(var(--latch-lime) / 0.55) 0%, hsl(var(--latch-yellow) / 0.25) 45%, transparent 75%)",
+            }}
+          />
+          <div className="relative">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="chip-brand rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em]" data-testid="text-product-tagline">
+                your phone coach
+              </span>
+              <span className="text-sm font-medium text-muted-foreground">Made for {profile.name || "you"}</span>
             </div>
-            <Mascot mood="happy" compact message={personalizedNudge} />
-          </div>
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Button type="button" onClick={startFocus} data-testid="button-start-focus-hero">
-              Start focus
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
-            <Button type="button" variant="outline" onClick={() => setLocation("/bridge")} data-testid="button-open-bridge-hero">
-              Cross the bridge
-            </Button>
-            <Button
+
+            {/* HERO: oversized headline + Lumi face tile */}
+            <div className="mt-6 grid gap-5 sm:grid-cols-[1fr_auto] sm:items-center">
+              <div className="max-w-xl">
+                <h1
+                  className="font-display text-[2.25rem] font-extrabold leading-[1.02] tracking-tight text-night sm:text-[3rem]"
+                  data-testid="text-hero-title"
+                >
+                  Go touch grass.
+                </h1>
+                <p
+                  className="mt-3 text-base leading-7 text-muted-foreground sm:text-[1.05rem]"
+                  data-testid="text-hero-description"
+                >
+                  Warm, natural, and focused on real-world habits. Lumi is here for{" "}
+                  <strong className="text-night">{formatHours(profile.goalHours)}</strong> a day, gentle nudges, and big credit rewards when you log off.
+                </p>
+              </div>
+              {/* Lumi face tile — green/gold gradient square with soft glow */}
+              <div
+                className="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-[1.75rem] border border-[hsl(138_43%_36%)]/40 shadow-[0_18px_36px_-16px_hsl(138_43%_28%/0.55),inset_0_1px_0_hsl(42_100%_95%/0.4)] sm:h-32 sm:w-32"
+                style={{
+                  background:
+                    "linear-gradient(150deg, hsl(138 50% 64%) 0%, hsl(138 45% 55%) 55%, hsl(42 100% 70%) 130%)",
+                }}
+                data-testid="hero-lumi-tile"
+              >
+                <span
+                  aria-hidden="true"
+                  className="absolute -inset-2 -z-10 rounded-[2rem] opacity-60 blur-2xl"
+                  style={{ background: "radial-gradient(circle, hsl(138 45% 55% / 0.45), transparent 70%)" }}
+                />
+                <svg viewBox="0 0 96 96" className="h-20 w-20 sm:h-24 sm:w-24" aria-label="Lumi mascot">
+                  <circle cx="34" cy="42" r="4" fill="#0F3329" />
+                  <circle cx="62" cy="42" r="4" fill="#0F3329" />
+                  <path d="M32 56c6 8 26 8 32 0" stroke="#0F3329" strokeWidth="5" strokeLinecap="round" fill="none" />
+                </svg>
+              </div>
+            </div>
+
+            {/* BRAIN ENERGY card with horizontal gradient bar + 2 small stat pills */}
+            <div className="mt-7 rounded-[1.5rem] panel-inset p-4 sm:p-5" data-testid="card-brain-energy">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-night" aria-hidden="true" />
+                  <p className="text-sm font-extrabold text-night">Brain energy</p>
+                </div>
+                <span className="font-mono text-xs font-bold tabular-nums text-muted-foreground">
+                  {account.profile.brainEnergy}% / 100
+                </span>
+              </div>
+              <div className="mt-3 h-3 overflow-hidden rounded-full bg-[hsl(var(--latch-cream-soft))] ring-1 ring-[hsl(var(--latch-night))]/8">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${clamp(account.profile.brainEnergy, 0, 100)}%` }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="h-full rounded-full"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, hsl(138 45% 55%) 0%, hsl(138 50% 62%) 50%, hsl(42 100% 70%) 100%)",
+                  }}
+                  data-testid="bar-brain-energy"
+                />
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div
+                  className="rounded-2xl border border-[hsl(138_43%_36%)]/25 bg-[hsl(138_45%_55%/0.12)] p-3"
+                  data-testid="pill-stat-energy"
+                >
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[hsl(138_43%_28%)]">energy</p>
+                  <p className="mt-1 font-display text-xl font-black text-night tabular-nums">
+                    {account.profile.brainEnergy}%
+                  </p>
+                </div>
+                <div
+                  className="rounded-2xl border border-[hsl(138_43%_36%)]/25 bg-[hsl(138_45%_55%/0.12)] p-3"
+                  data-testid="pill-stat-credits"
+                >
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[hsl(138_43%_28%)]">credits</p>
+                  <p className="mt-1 font-display text-xl font-black text-night tabular-nums">
+                    {account.profile.latchCredits}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ACTION LIST — three pill rows w/ green circle icons */}
+            <ul className="mt-5 space-y-2.5" data-testid="list-quick-actions">
+              {[
+                { icon: Sprout, title: "Outdoor walk", detail: "+10 Latch Credits", testId: "row-action-walk" },
+                { icon: BookOpen, title: "Study block", detail: "45 minutes protected", testId: "row-action-study" },
+                { icon: Heart, title: "Gratitude note", detail: "Unlock calm badge", testId: "row-action-gratitude" },
+              ].map(({ icon: Icon, title, detail, testId }) => (
+                <li
+                  key={title}
+                  className="flex items-center gap-3 rounded-[1.25rem] border border-[hsl(var(--latch-night))]/8 bg-[hsl(var(--latch-cream-light))] px-3 py-3 shadow-[inset_0_1px_0_hsl(42_100%_95%/0.6)]"
+                  data-testid={testId}
+                >
+                  <span
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[hsl(138_43%_36%)]/40 text-cream"
+                    style={{
+                      background: "linear-gradient(150deg, hsl(138 50% 60%) 0%, hsl(138 43% 43%) 100%)",
+                      boxShadow: "inset 0 1px 0 hsl(42 100% 95% / 0.35)",
+                    }}
+                    aria-hidden="true"
+                  >
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-extrabold text-night">{title}</p>
+                    <p className="text-xs text-muted-foreground">{detail}</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                </li>
+              ))}
+            </ul>
+
+            {/* DARK FOREST CTA */}
+            <button
               type="button"
-              variant="secondary"
-              onClick={() => {
-                setUseClassicOnboarding(false);
-                setOnboarded(false);
-              }}
-              data-testid="button-edit-onboarding"
+              onClick={startFocus}
+              data-testid="button-start-offline-quest"
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl surface-night-deep px-6 py-4 font-display text-base font-extrabold tracking-tight text-cream transition hover:brightness-110 active:scale-[0.99] focus-ring"
             >
-              Talk to Lumi again
-            </Button>
-          </div>
-          <div className="mt-8 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-[hsl(var(--latch-purple))]/25 bg-[hsl(var(--latch-purple))]/10 p-4" data-testid="card-loop-friction">
-              <Brain className="h-5 w-5 text-purple-unlock" aria-hidden="true" />
-              <p className="mt-3 text-sm font-bold">Pause first</p>
-              <p className="mt-1 text-sm text-muted-foreground">A short stop breaks autopilot.</p>
+              Start Offline Quest
+              <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+
+            {/* PALETTE DOTS */}
+            <div className="mt-5 flex items-center justify-center gap-2.5" aria-hidden="true" data-testid="palette-dots">
+              {[
+                "hsl(var(--latch-night-deep))",
+                "hsl(var(--latch-lime))",
+                "hsl(var(--latch-yellow))",
+                "hsl(var(--latch-cream-soft))",
+              ].map((color, idx) => (
+                <span
+                  key={idx}
+                  className="h-2.5 w-2.5 rounded-full ring-1 ring-[hsl(var(--latch-night))]/10"
+                  style={{ background: color }}
+                />
+              ))}
             </div>
-            <div className="rounded-2xl border border-[hsl(var(--latch-lime))]/40 bg-[hsl(var(--latch-lime))]/15 p-4" data-testid="card-loop-reward">
-              <Gift className="h-5 w-5 text-lime-deep" aria-hidden="true" />
-              <p className="mt-3 text-sm font-bold">Mystery rewards</p>
-              <p className="mt-1 text-sm text-muted-foreground">Skipping can unlock surprise coins.</p>
-            </div>
-            <div className="rounded-2xl border border-[hsl(var(--latch-yellow))]/45 bg-[hsl(var(--latch-yellow))]/20 p-4" data-testid="card-loop-social">
-              <Users className="h-5 w-5 text-[hsl(var(--latch-yellow))]" aria-hidden="true" />
-              <p className="mt-3 text-sm font-bold">Bring friends</p>
-              <p className="mt-1 text-sm text-muted-foreground">Compete on time saved.</p>
+
+            {/* Secondary actions row — keep existing flows reachable */}
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setLocation("/bridge")} data-testid="button-open-bridge-hero">
+                Cross the bridge
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => setLocation("/earn")} data-testid="button-go-earn-hero">
+                Earn credits
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setUseClassicOnboarding(false);
+                  setOnboarded(false);
+                }}
+                data-testid="button-edit-onboarding"
+              >
+                Talk to Lumi again
+              </Button>
             </div>
           </div>
         </motion.div>
