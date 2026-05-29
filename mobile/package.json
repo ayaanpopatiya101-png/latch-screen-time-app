@@ -41,5 +41,11 @@
     "@babel/core": "^7.25.0",
     "@types/react": "~18.3.12",
     "typescript": "^5.6.3"
+  },
+  "react-native": {
+    "dependencies": {
+      "screen-time-ios": "./modules/screen-time-ios",
+      "screen-time-android": "./modules/screen-time-android"
+    }
   }
 }
