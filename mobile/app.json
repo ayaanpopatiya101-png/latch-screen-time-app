@@ -21,7 +21,8 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
-        "com.apple.developer.family-controls": true
+        "com.apple.developer.family-controls": true,
+        "com.apple.security.application-groups": ["group.com.latch.screentime"]
       }
     },
     "android": {
@@ -34,13 +35,16 @@
         "android.permission.PACKAGE_USAGE_STATS",
         "android.permission.QUERY_ALL_PACKAGES",
         "android.permission.POST_NOTIFICATIONS",
-        "android.permission.FOREGROUND_SERVICE"
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_SPECIAL_USE"
       ]
     },
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-notifications"
+      "expo-notifications",
+      "./modules/screen-time-ios/app.plugin",
+      "./modules/screen-time-android/app.plugin"
     ],
     "extra": {
       "eas": {
