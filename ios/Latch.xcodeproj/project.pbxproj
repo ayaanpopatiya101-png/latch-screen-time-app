@@ -1,0 +1,520 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+		003599D5383235508BBEED60 /* BridgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BridgeView.swift"; sourceTree = "<group>"; };
+		007113833EAA4CB37F8B8125 /* Build configuration list for PBXNativeTarget LatchShieldConfiguration */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A9AF82EA3A087477734322A8 /* Debug */,
+				3F06DB918D2C14194DF8CEA3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		01831DC68AD8F3D675551181 /* ScreenTimeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ScreenTimeManager.swift"; sourceTree = "<group>"; };
+		11EFB7A3A1C0E33ED0CA4C87 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9EF2A39F073578D3E87C9AE /* DashboardView.swift */; };
+		13D58F750C9F7A867F986420 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		1BECE743729EB29969D89FD4 = {
+			isa = PBXGroup;
+			children = (
+				AA99EA6C9CBEE7EF4D63A5EC /* DeviceActivityMonitorExtension.swift */,
+				BB355E722E1677446E3FC3AF /* Info.plist */,
+				A6BB575CF9F01CFB5ECAEC44 /* LatchDeviceActivityMonitor.entitlements */,
+			);
+			name = "LatchDeviceActivityMonitor";
+			path = "LatchDeviceActivityMonitor";
+			sourceTree = "<group>";
+		};
+		1CD961A0EF43870C010A3F2A /* LatchShieldConfiguration.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 64EB78BBCFDCF75CE4741568 /* LatchShieldConfiguration.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1F87A99AFDE419ED50B7C268 = {
+			isa = PBXGroup;
+			children = (
+				72EEAD1EDB9AC53297F6B9D3 /* Info.plist */,
+				AD3E370D8378459A0A07808B /* LatchShieldConfiguration.entitlements */,
+				E0C3273B2DFE2DE38937157D /* ShieldConfigurationExtension.swift */,
+			);
+			name = "LatchShieldConfiguration";
+			path = "LatchShieldConfiguration";
+			sourceTree = "<group>";
+		};
+		244210E48437B6556980A702 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					8C1A045E96B998B40533C7FF = {
+						CreatedOnToolsVersion = 15.4;
+						SystemCapabilities = {
+							com.apple.FamilyControls = { enabled = 1; };
+							com.apple.ApplicationGroups.iOS = { enabled = 1; };
+						};
+					};
+					D96EC29388CE626295522CEC = {
+						CreatedOnToolsVersion = 15.4;
+						SystemCapabilities = {
+							com.apple.FamilyControls = { enabled = 1; };
+							com.apple.ApplicationGroups.iOS = { enabled = 1; };
+						};
+					};
+					398FFB8F3F6AA812E4C7B512 = {
+						CreatedOnToolsVersion = 15.4;
+						SystemCapabilities = {
+							com.apple.FamilyControls = { enabled = 1; };
+							com.apple.ApplicationGroups.iOS = { enabled = 1; };
+						};
+					};
+				};
+			};
+			buildConfigurationList = 570D7009BA7F70200C648A59 /* Build configuration list for PBXProject "Latch" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AA0596BBDB4DCC95D5D4F10C;
+			productRefGroup = 6F7199ED7B63CDA338A0FB82 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8C1A045E96B998B40533C7FF /* Latch */,
+				D96EC29388CE626295522CEC /* LatchDeviceActivityMonitor */,
+				398FFB8F3F6AA812E4C7B512 /* LatchShieldConfiguration */,
+			);
+		};
+		30F380C4BEB07EC6CEF25322 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "LatchDeviceActivityMonitor/LatchDeviceActivityMonitor.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "LatchDeviceActivityMonitor/Info.plist";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.latch.app.deviceactivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SKIP_INSTALL = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				CLANG_ENABLE_MODULES = YES;
+			};
+			name = Debug;
+		};
+		35AF42D20B91BC34306F286E = {isa = PBXContainerItemProxy; containerPortal = 244210E48437B6556980A702 /* Project object */; proxyType = 1; remoteGlobalIDString = 398FFB8F3F6AA812E4C7B512; remoteInfo = LatchShieldConfiguration; };
+		378CF939C6C3A1587A61BF88 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FDE4FBDD500800DB91DADA /* OnboardingView.swift */; };
+		391D5CB69BC1078B5F3CF294 /* LatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE9C0BBBBDA1550C1B42D277 /* LatchApp.swift */; };
+		398FFB8F3F6AA812E4C7B512 /* LatchShieldConfiguration */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 007113833EAA4CB37F8B8125 /* Build configuration list for PBXNativeTarget "LatchShieldConfiguration" */;
+			buildPhases = (
+				9F010BF04575F67AA271E17A /* Sources */,
+				90D37DA335334BDC26C86A9A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LatchShieldConfiguration;
+			productName = LatchShieldConfiguration;
+			productReference = 64EB78BBCFDCF75CE4741568 /* LatchShieldConfiguration.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		3F06DB918D2C14194DF8CEA3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "LatchShieldConfiguration/LatchShieldConfiguration.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "LatchShieldConfiguration/Info.plist";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.latch.app.shield;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SKIP_INSTALL = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				CLANG_ENABLE_MODULES = YES;
+			};
+			name = Release;
+		};
+		3FD25AB845FAD7F9A5BB71E7 /* Latch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Latch.entitlements"; sourceTree = "<group>"; };
+		414AB3D5E965BDFACD3FB6D5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				VALIDATE_PRODUCT = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Release;
+		};
+		570D7009BA7F70200C648A59 /* Build configuration list for PBXProject */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F04B4B5562559BB2A5B5B000 /* Debug */,
+				414AB3D5E965BDFACD3FB6D5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		58BC52BC048D8A0D442157FF /* ShieldConfigurationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0C3273B2DFE2DE38937157D /* ShieldConfigurationExtension.swift */; };
+		5AFE3F28A34B278C7237720A /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70C69F2297405ED18D103CA /* NotificationManager.swift */; };
+		5F7CF22E96D87C727357CC60 /* BridgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 003599D5383235508BBEED60 /* BridgeView.swift */; };
+		64EB78BBCFDCF75CE4741568 /* LatchShieldConfiguration.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LatchShieldConfiguration.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		6511D3F13CCC4CBD85769416 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models.swift"; sourceTree = "<group>"; };
+		67406B7F577E0D54840AA728 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		6ACE7BC297BF23705D4E5F56 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				391D5CB69BC1078B5F3CF294 /* LatchApp.swift in Sources */,
+				FED5AE25841238ACE777E359 /* AppState.swift in Sources */,
+				5AFE3F28A34B278C7237720A /* NotificationManager.swift in Sources */,
+				A626F2DD293D30FF2F4F8B7E /* ScreenTimeManager.swift in Sources */,
+				D3C636FC287A0654DF97327D /* Models.swift in Sources */,
+				5F7CF22E96D87C727357CC60 /* BridgeView.swift in Sources */,
+				AEFB18276DC2E2FF55212FE4 /* ContentView.swift in Sources */,
+				11EFB7A3A1C0E33ED0CA4C87 /* DashboardView.swift in Sources */,
+				378CF939C6C3A1587A61BF88 /* OnboardingView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6F2F963A4C4F0729A10B9898 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppState.swift"; sourceTree = "<group>"; };
+		6F7199ED7B63CDA338A0FB82 = {
+			isa = PBXGroup;
+			children = (
+				81F31879437340D5CD6ED968 /* Latch.app */,
+				CB7AE5939C7EBF9B59291AD9 /* LatchDeviceActivityMonitor.appex */,
+				64EB78BBCFDCF75CE4741568 /* LatchShieldConfiguration.appex */,
+			);
+			name = "Products";
+			sourceTree = "<group>";
+		};
+		72EEAD1EDB9AC53297F6B9D3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; };
+		780AE98AAB38D0485BF2376A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7DBFCF0450DAA90E5667702E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Latch/Latch.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Latch/Info.plist";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.latch.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ENABLE_PREVIEWS = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
+			};
+			name = Debug;
+		};
+		81F31879437340D5CD6ED968 /* Latch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Latch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		86967A1E16FC5C244226C158 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView.swift"; sourceTree = "<group>"; };
+		8B2225DA5CA669D69E62D5D3 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8C4EDA081519C63C1FC83048 /* DeviceActivityMonitorExtension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8C1A045E96B998B40533C7FF /* Latch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CF26649ABF430DF0AF1FF3CD /* Build configuration list for PBXNativeTarget "Latch" */;
+			buildPhases = (
+				6ACE7BC297BF23705D4E5F56 /* Sources */,
+				13D58F750C9F7A867F986420 /* Frameworks */,
+				EB12F685944315C425ABFF58 /* Resources */,
+				C5F63ED2112A984EE448547F /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EF2E708DDECC34155B4B72FB /* PBXTargetDependency */,
+				8CC6516886E4A0EA7207BCE2 /* PBXTargetDependency */,
+			);
+			name = Latch;
+			productName = Latch;
+			productReference = 81F31879437340D5CD6ED968 /* Latch.app */;
+			productType = "com.apple.product-type.application";
+		};
+		8C4EDA081519C63C1FC83048 /* DeviceActivityMonitorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA99EA6C9CBEE7EF4D63A5EC /* DeviceActivityMonitorExtension.swift */; };
+		8CC6516886E4A0EA7207BCE2 = {isa = PBXTargetDependency; target = 398FFB8F3F6AA812E4C7B512 /* LatchShieldConfiguration */; targetProxy = 35AF42D20B91BC34306F286E; };
+		90D37DA335334BDC26C86A9A = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		90D917BD397F76FB87EE6DB0 = {
+			isa = PBXGroup;
+			children = (
+				6511D3F13CCC4CBD85769416 /* Models.swift */,
+			);
+			name = "Models";
+			path = "Models";
+			sourceTree = "<group>";
+		};
+		97420637F69BF7BA8063516A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; };
+		9F010BF04575F67AA271E17A = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				58BC52BC048D8A0D442157FF /* ShieldConfigurationExtension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A626F2DD293D30FF2F4F8B7E /* ScreenTimeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01831DC68AD8F3D675551181 /* ScreenTimeManager.swift */; };
+		A6BB575CF9F01CFB5ECAEC44 /* LatchDeviceActivityMonitor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "LatchDeviceActivityMonitor.entitlements"; sourceTree = "<group>"; };
+		A9AF82EA3A087477734322A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "LatchShieldConfiguration/LatchShieldConfiguration.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "LatchShieldConfiguration/Info.plist";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.latch.app.shield;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SKIP_INSTALL = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				CLANG_ENABLE_MODULES = YES;
+			};
+			name = Debug;
+		};
+		AA0596BBDB4DCC95D5D4F10C = {
+			isa = PBXGroup;
+			children = (
+				FED6833D0D3F68A6C88E31A1 /* Latch */,
+				1BECE743729EB29969D89FD4 /* LatchDeviceActivityMonitor */,
+				1F87A99AFDE419ED50B7C268 /* LatchShieldConfiguration */,
+				6F7199ED7B63CDA338A0FB82 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA99EA6C9CBEE7EF4D63A5EC /* DeviceActivityMonitorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DeviceActivityMonitorExtension.swift"; sourceTree = "<group>"; };
+		AD3E370D8378459A0A07808B /* LatchShieldConfiguration.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "LatchShieldConfiguration.entitlements"; sourceTree = "<group>"; };
+		AEFB18276DC2E2FF55212FE4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86967A1E16FC5C244226C158 /* ContentView.swift */; };
+		BB355E722E1677446E3FC3AF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info.plist"; sourceTree = "<group>"; };
+		BD43B0C6E42DB4C18D08C82F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 780AE98AAB38D0485BF2376A /* Assets.xcassets */; };
+		BDCDE51D05351276669CFF4D = {
+			isa = PBXGroup;
+			children = (
+				003599D5383235508BBEED60 /* BridgeView.swift */,
+				86967A1E16FC5C244226C158 /* ContentView.swift */,
+				F9EF2A39F073578D3E87C9AE /* DashboardView.swift */,
+				F4FDE4FBDD500800DB91DADA /* OnboardingView.swift */,
+			);
+			name = "Views";
+			path = "Views";
+			sourceTree = "<group>";
+		};
+		C5F63ED2112A984EE448547F = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E5C93CDE7F92F7B854E64E8E /* LatchDeviceActivityMonitor.appex in Embed Foundation Extensions */,
+				1CD961A0EF43870C010A3F2A /* LatchShieldConfiguration.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CB7AE5939C7EBF9B59291AD9 /* LatchDeviceActivityMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LatchDeviceActivityMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF26649ABF430DF0AF1FF3CD /* Build configuration list for PBXNativeTarget Latch */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DBFCF0450DAA90E5667702E /* Debug */,
+				F07E46B59C136B09053D459C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D3C636FC287A0654DF97327D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6511D3F13CCC4CBD85769416 /* Models.swift */; };
+		D59C737CF3CD5A2199BEBBBC = {isa = PBXContainerItemProxy; containerPortal = 244210E48437B6556980A702 /* Project object */; proxyType = 1; remoteGlobalIDString = D96EC29388CE626295522CEC; remoteInfo = LatchDeviceActivityMonitor; };
+		D96EC29388CE626295522CEC /* LatchDeviceActivityMonitor */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E1340C4F18B525700897AE1D /* Build configuration list for PBXNativeTarget "LatchDeviceActivityMonitor" */;
+			buildPhases = (
+				8B2225DA5CA669D69E62D5D3 /* Sources */,
+				67406B7F577E0D54840AA728 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LatchDeviceActivityMonitor;
+			productName = LatchDeviceActivityMonitor;
+			productReference = CB7AE5939C7EBF9B59291AD9 /* LatchDeviceActivityMonitor.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		DBADF2A7F33BBB7049DF0005 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "LatchDeviceActivityMonitor/LatchDeviceActivityMonitor.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "LatchDeviceActivityMonitor/Info.plist";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.latch.app.deviceactivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SKIP_INSTALL = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				CLANG_ENABLE_MODULES = YES;
+			};
+			name = Release;
+		};
+		E0C3273B2DFE2DE38937157D /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShieldConfigurationExtension.swift"; sourceTree = "<group>"; };
+		E1340C4F18B525700897AE1D /* Build configuration list for PBXNativeTarget LatchDeviceActivityMonitor */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				30F380C4BEB07EC6CEF25322 /* Debug */,
+				DBADF2A7F33BBB7049DF0005 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E5C93CDE7F92F7B854E64E8E /* LatchDeviceActivityMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CB7AE5939C7EBF9B59291AD9 /* LatchDeviceActivityMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		EB12F685944315C425ABFF58 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD43B0C6E42DB4C18D08C82F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EE31914874F06C3647DB02A1 = {
+			isa = PBXGroup;
+			children = (
+				6F2F963A4C4F0729A10B9898 /* AppState.swift */,
+				F70C69F2297405ED18D103CA /* NotificationManager.swift */,
+				01831DC68AD8F3D675551181 /* ScreenTimeManager.swift */,
+			);
+			name = "Managers";
+			path = "Managers";
+			sourceTree = "<group>";
+		};
+		EE9C0BBBBDA1550C1B42D277 /* LatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LatchApp.swift"; sourceTree = "<group>"; };
+		EF2E708DDECC34155B4B72FB = {isa = PBXTargetDependency; target = D96EC29388CE626295522CEC /* LatchDeviceActivityMonitor */; targetProxy = D59C737CF3CD5A2199BEBBBC; };
+		F04B4B5562559BB2A5B5B000 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+			};
+			name = Debug;
+		};
+		F07E46B59C136B09053D459C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Latch/Latch.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Latch/Info.plist";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.latch.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ENABLE_PREVIEWS = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
+			};
+			name = Release;
+		};
+		F4FDE4FBDD500800DB91DADA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OnboardingView.swift"; sourceTree = "<group>"; };
+		F70C69F2297405ED18D103CA /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotificationManager.swift"; sourceTree = "<group>"; };
+		F9EF2A39F073578D3E87C9AE /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DashboardView.swift"; sourceTree = "<group>"; };
+		FED5AE25841238ACE777E359 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F2F963A4C4F0729A10B9898 /* AppState.swift */; };
+		FED6833D0D3F68A6C88E31A1 = {
+			isa = PBXGroup;
+			children = (
+				EE31914874F06C3647DB02A1 /* Managers */,
+				90D917BD397F76FB87EE6DB0 /* Models */,
+				BDCDE51D05351276669CFF4D /* Views */,
+				780AE98AAB38D0485BF2376A /* Assets.xcassets */,
+				97420637F69BF7BA8063516A /* Info.plist */,
+				3FD25AB845FAD7F9A5BB71E7 /* Latch.entitlements */,
+				EE9C0BBBBDA1550C1B42D277 /* LatchApp.swift */,
+			);
+			name = "Latch";
+			path = "Latch";
+			sourceTree = "<group>";
+		};
+	};
+	rootObject = 244210E48437B6556980A702 /* Project object */;
+}
